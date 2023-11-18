@@ -18,10 +18,10 @@ class ChiefTwit(Client):
     def write_tweet(self, text):
         """use when you need to write/send/make a tweet"""
         response = self.client.create_tweet(text=text)
-        if response.status_code == 200:
-            return "Done" 
+        if response.errors == []:
+            return "Successful" 
         else:
-            return "Processing"
+            return "Something went wrong"
 
     def get_tweets(self, username):
         self.client.get_user(username)

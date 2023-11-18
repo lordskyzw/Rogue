@@ -59,12 +59,16 @@ class Rogue:
                 func_name = action["function"]["name"]
                 arguments = json.loads(action["function"]["arguments"])
                 if func_name == "write_tweet":
-                    tweet = ChiefTwit()
-                    output = tweet.write_tweet(arguments["new_rate"])
-                    tools_output.append({
-                        "tool_call_id": action["id"],
-                        "output": output
-                    })
+                    musk = ChiefTwit()
+                    try:
+                        output = musk.write_tweet((arguments["text"]))
+                        tools_output.append({
+                            "tool_call_id": action["id"],
+                            "output": output
+                        })
+                    except Exception as e:
+                        self.client.beta.threads.runs.cancel(run_id="run_TCi7Umz483eMPFzCQRumgMuA", thread_id="thread_jumec4yKfkbUQGOaLYQ4DyK4")
+                        return f"something went wrong while executing the function\nError: {e}"
                 else:
                     logging.info("+++++++++++++++++++++++ FUNCTION REQUIRED NOT FOUND! ++++++++++++++++++++++++")
 
@@ -80,7 +84,7 @@ class Rogue:
                     )
             run_status = run.status
             # Exponential back off while waiting for run to complete or fail
-            while run_status not in ["completed", "requires_action", "failed"]:
+            while run_status not in ["completed", "requires_action", "failed", "cancelled", "expired"]:
                 if total_waited >= max_wait_time:
                     logging.warning("Timeout reached while waiting for the run to complete.")
                     return "Request timed out."
@@ -98,24 +102,15 @@ class Rogue:
             messages = self.client.beta.threads.messages.list(thread_id=self.thread_id)
             logging.info("+++++++++++++++++++++++ MESSAGES ++++++++++++++++++++++++ %s", messages.data)
             assistant_messages = [msg for msg in messages.data if msg.role == "assistant"]
-            if assistant_messages:
-                response = assistant_messages[0].content[0].text.value
-                if response:
-                    return response
-                else:
-                    return "Assistant response took time but action was carried out"
-            else:
-                return "No response from the assistant yet."
-            
+            response = assistant_messages[0].content[0].text.value
+            return response
         else:
             messages = self.client.beta.threads.messages.list(thread_id=self.thread_id)
             logging.info("+++++++++++++++++++++++ MESSAGES ++++++++++++++++++++++++ %s", messages.data)
             assistant_messages = [msg for msg in messages.data if msg.role == "assistant"]
-            if assistant_messages:
-                response = assistant_messages[0].content[0].text.value
-                if response:
-                    return response
-                return 'My apologies boss, something went wrong while handling your request.\nPlease request again.'
+            response = assistant_messages[0].content[0].text.value
+            return response
+
             
 class Kim:
     def __init__(self, thread_id):
@@ -144,7 +139,7 @@ class Kim:
         total_waited = 0
         wait_interval = 1  # Initial wait interval in seconds
 
-        while run_status not in ["completed", "requires_action", "failed"]:
+        while run_status not in ["completed", "requires_action", "failed", "cancelled", "expired"]:
             if total_waited >= max_wait_time:
                 logging.warning("Timeout reached while waiting for the run to complete.")
                 return "Request timed out."
@@ -168,11 +163,15 @@ class Kim:
                 func_name = action["function"]["name"]
                 arguments = json.loads(action["function"]["arguments"])
                 if func_name == "set_rate":
-                    output = set_rate(arguments["new_rate"])
-                    tools_output.append({
-                        "tool_call_id": action["id"],
-                        "output": output
-                    })
+                    try:
+                        output = set_rate(arguments["new_rate"])
+                        tools_output.append({
+                            "tool_call_id": action["id"],
+                            "output": output
+                        })
+                    except Exception as e:
+                        self.client.beta.threads.runs.cancel(run_id=(run.id), thread_id=(self.thread_id))
+                        return f"Function {func_name} has failed due to {e}"
                 else:
                     logging.info("+++++++++++++++++++++++ FUNCTION REQUIRED NOT FOUND! ++++++++++++++++++++++++")
 
@@ -187,8 +186,8 @@ class Kim:
                         run_id=run.id
                     )
             run_status = run.status
-            # Exponential back off while waiting for run to complete or fail
-            while run_status not in ["completed", "requires_action", "failed"]:
+            # Exponential back off while waiting for run to complete or fail or for the run to be cancelled when the tool fails to work
+            while run_status not in ["completed", "requires_action", "failed", "cancelled", "expired"]:
                 if total_waited >= max_wait_time:
                     logging.warning("Timeout reached while waiting for the run to complete.")
                     return "Request timed out."
@@ -206,21 +205,11 @@ class Kim:
             messages = self.client.beta.threads.messages.list(thread_id=self.thread_id)
             logging.info("+++++++++++++++++++++++ MESSAGES ++++++++++++++++++++++++ %s", messages.data)
             assistant_messages = [msg for msg in messages.data if msg.role == "assistant"]
-            if assistant_messages:
-                response = assistant_messages[0].content[0].text.value
-                if response:
-                    return response
-                else:
-                    return "Assistant response took time but action was carried out"
-            else:
-                return "No response from the assistant yet."
-            
+            response = assistant_messages[0].content[0].text.value
+            return response
         else:
             messages = self.client.beta.threads.messages.list(thread_id=self.thread_id)
             logging.info("+++++++++++++++++++++++ MESSAGES ++++++++++++++++++++++++ %s", messages.data)
             assistant_messages = [msg for msg in messages.data if msg.role == "assistant"]
-            if assistant_messages:
-                response = assistant_messages[0].content[0].text.value
-                if response:
-                    return response
-                return 'My apologies boss, something went wrong while handling your request.\nPlease request again.'
+            response = assistant_messages[0].content[0].text.value
+            return response
