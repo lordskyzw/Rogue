@@ -12,7 +12,7 @@ class Rogue:
     def __init__(self):
         self.client = OpenAI(api_key=os.environ.get("OPENAI_API_KEY"))
         self.assistant = self.client.beta.assistants.retrieve("asst_320I6MdXAQVaoftlYKyOecPr")
-        self.thread_id = 'thread_SvNvhNz8tFJjlTIbXDeieuTm'
+        self.thread_id = 'thread_jumec4yKfkbUQGOaLYQ4DyK4'
         self.run = None
 
     def create_message_and_get_response(self, content):

@@ -55,8 +55,7 @@ def add_id_to_database(message_stamp: str):
 def save_thread_id(thread_id : str, recipient):
     """saves a user's thread id in the MongoDB database."""
     try:
-        mongo_uri = os.environ.get("MONGODB_URI")
-        client = MongoClient(mongo_uri)
+        client = MongoClient("mongodb://mongo:xQxzXZEzUilnKKhrbELE@containers-us-west-114.railway.app:6200")
         database = client["users"]
         collection = database["threads"]
         query = {"key": recipient}
