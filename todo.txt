@@ -1,0 +1,6 @@
+get a flowchart overview for app.py
+
+tools:
+ sending of messages
+ creating of flyers
+ if the message is audio, we can use the tts engine
