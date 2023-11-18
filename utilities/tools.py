@@ -63,6 +63,7 @@ def save_thread_id(thread_id : str, recipient):
         result = collection.update_one(query, new_values, upsert=True)
         client.close()
         if result.modified_count > 0 or result.upserted_id is not None:
+            logging.info("===================================SAVED THREAD_ID: %s", thread_id)
             return "success"
         else:
             return "failed"
@@ -78,7 +79,7 @@ def get_thread_id(recipient):
     query = {"key": recipient}
     result = collection.find_one(query)
     if result and 'thread_id' in result:
-        logging.info("===================================FETCHED RATE: %s", result['thread_id'])
+        logging.info("===================================FETCHED THREAD_ID: %s", result['thread_id'])
         return str(result['thread_id'])
     else:
         return "no thread found" # Or a default rate if not found
