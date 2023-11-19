@@ -171,9 +171,10 @@ class Kim:
             for action in required_actions["tool_calls"]:
                 func_name = action["function"]["name"]
                 arguments = json.loads(action["function"]["arguments"])
-                if func_name == "set_rate":
+                if func_name == "search":
                     try:
-                        output = set_rate(arguments["new_rate"])
+                        search_processor = SearchProcessor()
+                        output = search_processor.run(arguments["query"])
                         tools_output.append({
                             "tool_call_id": action["id"],
                             "output": output
