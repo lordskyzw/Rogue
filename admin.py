@@ -111,13 +111,11 @@ class Rogue:
                     run_status = run.status
             
             messages = self.client.beta.threads.messages.list(thread_id=self.thread_id)
-            logging.info("+++++++++++++++++++++++ MESSAGES ++++++++++++++++++++++++ %s", messages.data)
             assistant_messages = [msg for msg in messages.data if msg.role == "assistant"]
             response = assistant_messages[0].content[0].text.value
             return response
         else:
             messages = self.client.beta.threads.messages.list(thread_id=self.thread_id)
-            logging.info("+++++++++++++++++++++++ MESSAGES ++++++++++++++++++++++++ %s", messages.data)
             assistant_messages = [msg for msg in messages.data if msg.role == "assistant"]
             response = assistant_messages[0].content[0].text.value
             return response
