@@ -61,7 +61,7 @@ def hook():
             message_exists = check_id_database(message_id)
             #handling the echoes from Meta
             if message_exists:
-                logging.warning(f"=============================================================== MESSAGE  ALREADY IN DATABASE")
+                logging.error(f"=============================================================== MESSAGE ALREADY IN DATABASE")
                 return "OK", 200
             elif not message_exists:
                 add_id_to_database(message_id)
