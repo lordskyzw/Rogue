@@ -60,11 +60,11 @@ async def verify_token(request: Request):
 @app.post("/rogue")
 async def hook(request: Request):
     logging.info("Received webhook")
-    data = request.json()
+    data = await request.json()
     logging.info("Received webhook data: %s", data)
     changed_field = messenger.changed_field(data)
     if changed_field == "messages":
-        new_message = messenger.is_message(data)
+        new_message = await messenger.is_message(data)
         if new_message:
             mobile = messenger.get_mobile(data)
             recipient = "".join(filter(str.isdigit, mobile))
