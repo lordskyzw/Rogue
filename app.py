@@ -37,13 +37,24 @@ logging.basicConfig(
 
 logging.info("Started FastAPI server")
 
+
+@app.get("/")
+async def welcome():
+    return {"message": "Welcome to my FastAPI application!"}
+
 @app.get("/rogue")
-async def verify_token(hub_verify_token: str, hub_challenge: str):
+async def verify_token(request: Request):
+    # Access query parameters
+    hub_verify_token = request.query_params.get("hub.verify_token")
+    hub_challenge = request.query_params.get("hub.challenge")
+
     if hub_verify_token == VERIFY_TOKEN:
         logging.info("Verified webhook")
+        # Create a plain text response
         return Response(content=hub_challenge, media_type="text/plain")
-    print("Webhook Verification failed")
-    return Response(content="Invalid verification token", status_code=401)
+    
+    logging.error("Webhook Verification failed")
+    return "Invalid verification token"
 
 
 @app.post("/rogue")
