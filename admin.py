@@ -1,4 +1,5 @@
 from openai import OpenAI
+from pathlib import Path
 import os
 import time
 import logging
@@ -119,16 +120,25 @@ class Rogue:
             assistant_messages = [msg for msg in messages.data if msg.role == "assistant"]
             response = assistant_messages[0].content[0].text.value
             return response
-    def handle_audio(self, audio_file):
-        # try:
-        #     transcript = self.client.audio.transcriptions.create(
-        #     model="whisper-1", 
-        #     file=audio_file
-        #     )
-        #     transcript = transcript["text"]
-        # except Exception as e:
-        #     return e
-        pass
+    def create_audio(self, audio_file):
+        '''takes in an audio file and returns an audio response from openai!'''
+        try:
+            transcript = self.client.audio.transcriptions.create(
+            model="whisper-1", 
+            file=audio_file
+            )
+            transcript = transcript["text"]
+            speech_file_path = Path(__file__).parent / "speech.mp3"
+            response = self.client.audio.speech.create(
+            model="tts-1",
+            voice="nova",
+            input=transcript
+            )
+            response.stream_to_file(speech_file_path)
+            return speech_file_path
+            
+        except Exception as e:
+            return e
     
       
             
