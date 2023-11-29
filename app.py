@@ -144,9 +144,9 @@ async def hook(request: Request):
                         else:
                             kim = Kim(thread_id=thread_id)
                             reply = kim.create_message_and_get_response(content=transcript)
-                            messenger.reply_to_message(
-                                message_id=message_id, message=reply, recipient_id=mobile
-                            )
+                            audio = kim.create_audio(response=reply)
+                            audio_id_dict = messenger.upload_media(media=(os.path.realpath(audio)))
+                            messenger.send_audio(audio=audio_id_dict["id"], recipient_id=recipient, link=False)
                     except Exception as e:
                         messenger.reply_to_message(message_id=message_id, message=f"error occured {e.with_traceback()}", recipient_id=recipient)
                     
