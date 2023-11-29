@@ -125,9 +125,9 @@ class Rogue:
         try:
             transcript = self.client.audio.transcriptions.create(
             model="whisper-1", 
+            response_format="text",
             file=audio_file
             )
-            transcript = transcript["text"]
             speech_file_path = Path(__file__).parent / "speech.mp3"
             response = self.client.audio.speech.create(
             model="tts-1",

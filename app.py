@@ -128,9 +128,9 @@ async def hook(request: Request):
                     try:
                         transcript = openai.audio.transcriptions.create(
                         model="whisper-1", 
+                        response_format="text",
                         file=audio_file
                         )
-                        transcript = transcript["text"]
                         if recipient == TARMICA:
                             reply = rogue.create_message_and_get_response(content=transcript)
                         else:
