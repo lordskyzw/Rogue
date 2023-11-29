@@ -132,6 +132,7 @@ class Rogue:
             response.stream_to_file(speech_file_path)
             return speech_file_path
         except Exception as e:
+            logging.error("ERROR OCCURED======================================================================%s", e)
             return e
     
       
