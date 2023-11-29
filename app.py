@@ -144,9 +144,9 @@ async def hook(request: Request):
                         else:
                             kim = Kim(thread_id=thread_id)
                             reply = kim.create_message_and_get_response(content=transcript)
-                        messenger.reply_to_message(
-                            message_id=message_id, message=reply, recipient_id=mobile
-                        )
+                            messenger.reply_to_message(
+                                message_id=message_id, message=reply, recipient_id=mobile
+                            )
                     except Exception as e:
                         messenger.reply_to_message(message_id=message_id, message=f"error occured {e.with_traceback()}", recipient_id=recipient)
                     
