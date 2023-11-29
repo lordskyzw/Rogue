@@ -142,6 +142,10 @@ async def hook(request: Request):
                             logging.info("============================================================= ID_DICT: %s", audio_id_dict)
                             messenger.send_audio(audio=audio_id_dict["id"], recipient_id=TARMICA, link=False)
                         else:
+                            thread_id = get_thread_id(recipient=recipient)
+                            if thread_id == "no thread found":
+                                logging.error(f"===============================ERROR: DATABASE OPERATION GONE WRONG LINE 94 in app.py")
+                                return "OK", 200
                             kim = Kim(thread_id=thread_id)
                             reply = kim.create_message_and_get_response(content=transcript)
                             audio = kim.create_audio(response=reply)
