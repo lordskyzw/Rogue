@@ -1,8 +1,9 @@
 import os
+import uvicorn
 import openai
-from utilities.tools import recipients_database, check_id_database, add_id_to_database, save_thread_id, get_thread_id
+from utilities.tools import recipients_database, check_id_database, add_id_to_database, save_thread_id, get_thread_id, language_check
 from admin import Rogue, Kim
-from flask import Flask, request, make_response
+from fastapi import FastAPI, Request, Response
 import logging
 from pygwan import WhatsApp
 
@@ -28,26 +29,38 @@ whitelist = [
     "263712463290"
 ]
 
-app = Flask(__name__)
+app = FastAPI()
 
 logging.basicConfig(
     level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
 )
 
+logging.info("Started FastAPI server")
+
+
+@app.get("/")
+async def welcome():
+    return {"message": "Welcome to my FastAPI application!"}
+
 @app.get("/rogue")
-def verify_token():
-    if request.args.get("hub.verify_token") == VERIFY_TOKEN:
-        print("Verified webhook")
-        response = make_response(request.args.get("hub.challenge"), 200)
-        response.mimetype = "text/plain"
-        return response
-    print("Webhook Verification failed")
+async def verify_token(request: Request):
+    # Access query parameters
+    hub_verify_token = request.query_params.get("hub.verify_token")
+    hub_challenge = request.query_params.get("hub.challenge")
+
+    if hub_verify_token == VERIFY_TOKEN:
+        logging.info("Verified webhook")
+        # Create a plain text response
+        return Response(content=hub_challenge, media_type="text/plain")
+    
+    logging.error("Webhook Verification failed")
     return "Invalid verification token"
 
 
 @app.post("/rogue")
-def hook():
-    data = request.get_json()
+async def hook(request: Request):
+    logging.info("Received webhook")
+    data = await request.json()
     logging.info("Received webhook data: %s", data)
     changed_field = messenger.changed_field(data)
     if changed_field == "messages":
@@ -86,7 +99,7 @@ def hook():
                     message = messenger.get_message(data)
                     if recipient == TARMICA:
                         response = rogue.create_message_and_get_response(content=message)
-                        messenger.reply_to_message(message_id=message_id, recipient_id=recipient, message=response)
+                        messenger.reply_to_message(message_id=message_id, recipient_id=TARMICA, message=response)
                         
                     else:
                         #retrieve the user's thread object
@@ -110,19 +123,42 @@ def hook():
                         media_url=audio_url, mime_type="audio/ogg"
                     )
                     audio_file = open(audio_uri, "rb")
-                    transcript = openai.Audio.transcribe("whisper-1", audio_file)
-                    transcript = transcript["text"]
-                    if recipient == TARMICA:
-                        reply = rogue.create_message_and_get_response(content=transcript)
-                    else:
-                        kim = Kim(thread_id=thread_id)
-                        reply = kim.create_message_and_get_response(content=transcript)
-                    messenger.reply_to_message(
-                        message_id=message_id, message=reply, recipient_id=mobile
-                    )
-                        
+                    try:
+                        transcript = openai.audio.transcriptions.create(
+                        model="whisper-1",
+                        language="en", 
+                        response_format="text",
+                        file=audio_file
+                        )
+                        logging.info(f"====================================================== TRANSCRIPT: {transcript}")
+                        if recipient == TARMICA:
+                            if language_check(transcript=transcript):
+                                reply = rogue.create_message_and_get_response(content=transcript)
+                                audio = rogue.create_audio(response=reply)
+                                audio_id_dict = messenger.upload_media(media=(os.path.realpath(audio)))
+                                messenger.send_audio(audio=audio_id_dict["id"], recipient_id=TARMICA, link=False)
+                            elif language_check(transcript=transcript)==False:
+                                messenger.reply_to_message(message_id=message_id, message="Sorry Tarmica, I didnt quite get that, may you please be clearer?", recipient_id=TARMICA)
+                            else:
+                                messenger.reply_to_message(message_id=message_id, message=f"In trying to determine if your english is correct or not, an error occured.", recipient_id=TARMICA)
+                        else:
+                            thread_id = get_thread_id(recipient=recipient)
+                            if thread_id == "no thread found":
+                                logging.error(f"===============================ERROR: DATABASE OPERATION GONE WRONG LINE 94 in app.py")
+                                return "OK", 200
+                            kim = Kim(thread_id=thread_id)
+                            if language_check(transcript=transcript):
+                                reply = kim.create_message_and_get_response(content=transcript)
+                                audio = kim.create_audio(response=reply)
+                                audio_id_dict = messenger.upload_media(media=(os.path.realpath(audio)))
+                                messenger.send_audio(audio=audio_id_dict["id"], recipient_id=recipient, link=False)
+                            elif language_check(transcript=transcript)==False:
+                                messenger.reply_to_message(message_id=message_id, message="I didnt quite get that, may you please be clearer?", recipient_id=recipient)
+                            else:
+                                messenger.reply_to_message(message_id=message_id, message=f"In trying to determine if your english is correct or not, an error occured. This is a special case. Please show Tarmica Chiwara (0779281345) this:\n {language_check(transcript=transcript)}", recipient_id=recipient) 
+                    except Exception as e:
+                        messenger.reply_to_message(message_id=message_id, message=f"error occured {e.with_traceback()}", recipient_id=recipient)           
                 ############################# End Audio Message Handling ######################################
-
                 elif message_type == "document":
                     messenger.send_message(
                         "I don't know how to handle documents yet", mobile
@@ -135,7 +171,3 @@ def hook():
                     logging.info("No new message")
         return "OK", 200
 
-
-if __name__ == "__main__":
-    app.run(debug=True, host='0.0.0.0', port=os.getenv("PORT", default=5000))
-    recipients_database.client.close()

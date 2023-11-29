@@ -297,7 +297,7 @@ class WhatsApp(object):
         Args:
             audio[str]: Audio id or link of the audio
             recipient_id[str]: Phone number of the user with country code wihout +
-            link[bool]: Whether to send an audio id or an audio link, True means that the audio is an id, False means that the audio is a link
+            link[bool]: Whether to send an audio id or an audio link, False means that the audio is an id, True means that the audio is a link
 
         Example:
             >>> from whatsapp import WhatsApp

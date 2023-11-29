@@ -1,4 +1,5 @@
 from openai import OpenAI
+from pathlib import Path
 import os
 import time
 import logging
@@ -119,7 +120,23 @@ class Rogue:
             assistant_messages = [msg for msg in messages.data if msg.role == "assistant"]
             response = assistant_messages[0].content[0].text.value
             return response
-
+    def create_audio(self, response):
+        '''takes in an audio file and returns an audio response from openai!'''
+        try:
+            speech_file_path = Path(__file__).parent / "speech.aac"
+            response = self.client.audio.speech.create(
+            model="tts-1",
+            voice="nova",
+            response_format="aac",
+            input=response
+            )
+            response.stream_to_file(speech_file_path)
+            return speech_file_path
+        except Exception as e:
+            logging.error("ERROR OCCURED======================================================================%s", e)
+            return e
+    
+      
             
 class Kim:
     def __init__(self, thread_id):
@@ -223,3 +240,18 @@ class Kim:
             assistant_messages = [msg for msg in messages.data if msg.role == "assistant"]
             response = assistant_messages[0].content[0].text.value
             return response
+    def create_audio(self, response):
+        '''takes in an audio file and returns an audio response from openai!'''
+        try:
+            speech_file_path = Path(__file__).parent / "speech.aac"
+            response = self.client.audio.speech.create(
+            model="tts-1",
+            voice="nova",
+            response_format="aac",
+            input=response
+            )
+            response.stream_to_file(speech_file_path)
+            return speech_file_path
+        except Exception as e:
+            logging.error("ERROR OCCURED======================================================================%s", e)
+            return e
