@@ -148,7 +148,7 @@ async def hook(request: Request):
                             message_id=message_id, message=reply, recipient_id=mobile
                         )
                     except Exception as e:
-                        messenger.reply_to_message(message_id=message_id, message=f"error occured {e.with_traceback}", recipient_id=recipient)
+                        messenger.reply_to_message(message_id=message_id, message=f"error occured {e.with_traceback()}", recipient_id=recipient)
                     
                         
                 ############################# End Audio Message Handling ######################################
