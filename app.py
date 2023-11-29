@@ -140,7 +140,7 @@ async def hook(request: Request):
                             logging.info("============================================================= AUDIO: %s", audio)
                             audio_id_dict = messenger.upload_media(media=(os.path.realpath(audio)))
                             logging.info("============================================================= ID_DICT: %s", audio_id_dict)
-                            messenger.send_audio(audio=audio_id_dict["id"], recipient_id=TARMICA)
+                            messenger.send_audio(audio=audio_id_dict["id"], recipient_id=TARMICA, link=False)
                         else:
                             kim = Kim(thread_id=thread_id)
                             reply = kim.create_message_and_get_response(content=transcript)
