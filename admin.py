@@ -119,7 +119,18 @@ class Rogue:
             assistant_messages = [msg for msg in messages.data if msg.role == "assistant"]
             response = assistant_messages[0].content[0].text.value
             return response
-
+    def handle_audio(self, audio_file):
+        # try:
+        #     transcript = self.client.audio.transcriptions.create(
+        #     model="whisper-1", 
+        #     file=audio_file
+        #     )
+        #     transcript = transcript["text"]
+        # except Exception as e:
+        #     return e
+        pass
+    
+      
             
 class Kim:
     def __init__(self, thread_id):
