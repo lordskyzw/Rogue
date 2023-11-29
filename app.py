@@ -125,7 +125,8 @@ async def hook(request: Request):
                     audio_file = open(audio_uri, "rb")
                     try:
                         transcript = openai.audio.transcriptions.create(
-                        model="whisper-1", 
+                        model="whisper-1",
+                        language="en-US", 
                         response_format="text",
                         file=audio_file
                         )
