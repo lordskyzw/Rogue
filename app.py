@@ -114,6 +114,8 @@ async def hook(request: Request):
                             )
                 ############################## END TEXT MESSAGE HANDLING ###################################################
                 ######################## Audio Message Handling ###########################################
+                
+                ## genuinely didnt  know i had this
                 elif message_type == "audio":
                     audio = messenger.get_audio(data=data)
                     audio_id, mime_type = audio["id"], audio["mime_type"]
