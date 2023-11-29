@@ -120,23 +120,17 @@ class Rogue:
             assistant_messages = [msg for msg in messages.data if msg.role == "assistant"]
             response = assistant_messages[0].content[0].text.value
             return response
-    def create_audio(self, audio_file):
+    def create_audio(self, response):
         '''takes in an audio file and returns an audio response from openai!'''
         try:
-            transcript = self.client.audio.transcriptions.create(
-            model="whisper-1", 
-            response_format="text",
-            file=audio_file
-            )
             speech_file_path = Path(__file__).parent / "speech.mp3"
             response = self.client.audio.speech.create(
             model="tts-1",
             voice="nova",
-            input=transcript
+            input=response
             )
             response.stream_to_file(speech_file_path)
             return speech_file_path
-            
         except Exception as e:
             return e
     

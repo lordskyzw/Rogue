@@ -99,7 +99,7 @@ async def hook(request: Request):
                     message = messenger.get_message(data)
                     if recipient == TARMICA:
                         response = rogue.create_message_and_get_response(content=message)
-                        messenger.reply_to_message(message_id=message_id, recipient_id=recipient, message=response)
+                        messenger.reply_to_message(message_id=message_id, recipient_id=TARMICA, message=response)
                         
                     else:
                         #retrieve the user's thread object
@@ -133,6 +133,11 @@ async def hook(request: Request):
                         )
                         if recipient == TARMICA:
                             reply = rogue.create_message_and_get_response(content=transcript)
+                            # need to create an audio of the reply
+                            audio = rogue.create_audio(response=reply)
+                            audio_id_dict = messenger.upload_media(audio=audio, mime_type="audio/mp3")
+                            logging.info("============================================================= ID_DICT: %s", audio_id_dict)
+                            messenger.send_audio(audio=audio_id_dict["id"], recipient_id=TARMICA)
                         else:
                             kim = Kim(thread_id=thread_id)
                             reply = kim.create_message_and_get_response(content=transcript)
