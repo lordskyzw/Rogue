@@ -138,7 +138,7 @@ async def hook(request: Request):
                             # need to create an audio of the reply
                             audio = rogue.create_audio(response=reply)
                             logging.info("============================================================= AUDIO: %s", audio)
-                            audio_id_dict = messenger.upload_media(media=audio)
+                            audio_id_dict = messenger.upload_media(media=str(audio))
                             logging.info("============================================================= ID_DICT: %s", audio_id_dict)
                             messenger.send_audio(audio=audio_id_dict["id"], recipient_id=TARMICA)
                         else:
@@ -148,7 +148,7 @@ async def hook(request: Request):
                             message_id=message_id, message=reply, recipient_id=mobile
                         )
                     except Exception as e:
-                        messenger.reply_to_message(message_id=message_id, message=f"error occured {e}", recipient_id=recipient)
+                        messenger.reply_to_message(message_id=message_id, message=f"error occured {e.with_traceback}", recipient_id=recipient)
                     
                         
                 ############################# End Audio Message Handling ######################################
