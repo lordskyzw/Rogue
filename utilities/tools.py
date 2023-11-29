@@ -1,6 +1,7 @@
 import os
 import logging
 from pymongo import MongoClient
+from openai import OpenAI
 
 token = os.environ.get("WHATSAPP_ACCESS_TOKEN")
 phone_number_id = os.environ.get("PHONE_NUMBER_ID")
@@ -9,7 +10,7 @@ openai_api_key = str(os.environ.get("OPENAI_API_KEY"))
 logging.basicConfig(
     level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
 )
-
+oai = OpenAI(api_key=(os.environ.get("OPENAI_API_KEY")))
 
 ######################################## users database functions ########################################
 def recipients_database():
@@ -83,3 +84,25 @@ def get_thread_id(recipient):
         return str(result['thread_id'])
     else:
         return "no thread found" # Or a default rate if not found
+    
+def language_check(transcript: str):
+    '''This function checks if the argument is english which makes sense or not'''
+    content = f"""Classes: [`sensible`, `non-sensible`]
+    Text: {transcript}
+    classify the text into one of the above classes.
+    If you think the text is sensible, type `sensible` otherwise type `non-sensible`. ONLY TYPE THE WORDS IN THE QUOTES."""
+    completion = oai.chat.completions.create(
+    model="gpt-3.5-turbo",
+    temperature=0.6,
+    messages=[
+        {"role": "user", "content": content},
+    ]
+    )
+    if completion.choices[0].message.content == 'sensible':
+        return True
+    elif completion.choices[0].message.content == 'non-sensible':
+        return False
+    else:
+        logging.error(f"===================================ERROR IN DETERMINING LEGIBILITY OF THE ENGLISH: {completion.choices[0].message.content}")
+        return completion.choices[0].message.content
+    

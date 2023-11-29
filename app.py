@@ -1,7 +1,7 @@
 import os
 import uvicorn
 import openai
-from utilities.tools import recipients_database, check_id_database, add_id_to_database, save_thread_id, get_thread_id
+from utilities.tools import recipients_database, check_id_database, add_id_to_database, save_thread_id, get_thread_id, language_check
 from admin import Rogue, Kim
 from fastapi import FastAPI, Request, Response
 import logging
@@ -114,8 +114,6 @@ async def hook(request: Request):
                             )
                 ############################## END TEXT MESSAGE HANDLING ###################################################
                 ######################## Audio Message Handling ###########################################
-                
-                ## genuinely didnt  know i had this
                 elif message_type == "audio":
                     audio = messenger.get_audio(data=data)
                     audio_id, mime_type = audio["id"], audio["mime_type"]
@@ -133,30 +131,33 @@ async def hook(request: Request):
                         )
                         logging.info(f"====================================================== TRANSCRIPT: {transcript}")
                         if recipient == TARMICA:
-                            reply = rogue.create_message_and_get_response(content=transcript)
-                            logging.info(f"====================================================== REPLY: {reply}")
-                            # need to create an audio of the reply
-                            audio = rogue.create_audio(response=reply)
-                            logging.info("============================================================= AUDIO: %s", audio)
-                            audio_id_dict = messenger.upload_media(media=(os.path.realpath(audio)))
-                            logging.info("============================================================= ID_DICT: %s", audio_id_dict)
-                            messenger.send_audio(audio=audio_id_dict["id"], recipient_id=TARMICA, link=False)
+                            if language_check(transcript=transcript):
+                                reply = rogue.create_message_and_get_response(content=transcript)
+                                audio = rogue.create_audio(response=reply)
+                                audio_id_dict = messenger.upload_media(media=(os.path.realpath(audio)))
+                                messenger.send_audio(audio=audio_id_dict["id"], recipient_id=TARMICA, link=False)
+                            elif language_check(transcript=transcript)==False:
+                                messenger.reply_to_message(message_id=message_id, message="Sorry Tarmica, I didnt quite get that, may you please be clearer?", recipient_id=TARMICA)
+                            else:
+                                messenger.reply_to_message(message_id=message_id, message=f"In trying to determine if your english is correct or not, an error occured.", recipient_id=TARMICA)
                         else:
                             thread_id = get_thread_id(recipient=recipient)
                             if thread_id == "no thread found":
                                 logging.error(f"===============================ERROR: DATABASE OPERATION GONE WRONG LINE 94 in app.py")
                                 return "OK", 200
                             kim = Kim(thread_id=thread_id)
-                            reply = kim.create_message_and_get_response(content=transcript)
-                            audio = kim.create_audio(response=reply)
-                            audio_id_dict = messenger.upload_media(media=(os.path.realpath(audio)))
-                            messenger.send_audio(audio=audio_id_dict["id"], recipient_id=recipient, link=False)
+                            if language_check(transcript=transcript):
+                                reply = kim.create_message_and_get_response(content=transcript)
+                                audio = kim.create_audio(response=reply)
+                                audio_id_dict = messenger.upload_media(media=(os.path.realpath(audio)))
+                                messenger.send_audio(audio=audio_id_dict["id"], recipient_id=recipient, link=False)
+                            elif language_check(transcript=transcript)==False:
+                                messenger.reply_to_message(message_id=message_id, message="I didnt quite get that, may you please be clearer?", recipient_id=recipient)
+                            else:
+                                messenger.reply_to_message(message_id=message_id, message=f"In trying to determine if your english is correct or not, an error occured. This is a special case. Please show Tarmica Chiwara (0779281345) this:\n {language_check(transcript=transcript)}", recipient_id=recipient) 
                     except Exception as e:
-                        messenger.reply_to_message(message_id=message_id, message=f"error occured {e.with_traceback()}", recipient_id=recipient)
-                    
-                        
+                        messenger.reply_to_message(message_id=message_id, message=f"error occured {e.with_traceback()}", recipient_id=recipient)           
                 ############################# End Audio Message Handling ######################################
-
                 elif message_type == "document":
                     messenger.send_message(
                         "I don't know how to handle documents yet", mobile
