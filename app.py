@@ -125,16 +125,23 @@ async def hook(request: Request):
                         media_url=audio_url, mime_type="audio/ogg"
                     )
                     audio_file = open(audio_uri, "rb")
-                    transcript = openai.Audio.transcribe("whisper-1", audio_file)
-                    transcript = transcript["text"]
-                    if recipient == TARMICA:
-                        reply = rogue.create_message_and_get_response(content=transcript)
-                    else:
-                        kim = Kim(thread_id=thread_id)
-                        reply = kim.create_message_and_get_response(content=transcript)
-                    messenger.reply_to_message(
-                        message_id=message_id, message=reply, recipient_id=mobile
-                    )
+                    try:
+                        transcript = openai.audio.transcriptions.create(
+                        model="whisper-1", 
+                        file=audio_file
+                        )
+                        transcript = transcript["text"]
+                        if recipient == TARMICA:
+                            reply = rogue.create_message_and_get_response(content=transcript)
+                        else:
+                            kim = Kim(thread_id=thread_id)
+                            reply = kim.create_message_and_get_response(content=transcript)
+                        messenger.reply_to_message(
+                            message_id=message_id, message=reply, recipient_id=mobile
+                        )
+                    except Exception as e:
+                        messenger.reply_to_message(message_id=message_id, message=f"error occured {e}", recipient_id=recipient)
+                    
                         
                 ############################# End Audio Message Handling ######################################
 
