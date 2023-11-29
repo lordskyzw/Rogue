@@ -123,10 +123,11 @@ class Rogue:
     def create_audio(self, response):
         '''takes in an audio file and returns an audio response from openai!'''
         try:
-            speech_file_path = Path(__file__).parent / "speech.mp3"
+            speech_file_path = Path(__file__).parent / "speech.aac"
             response = self.client.audio.speech.create(
             model="tts-1",
             voice="nova",
+            response_format="aac",
             input=response
             )
             response.stream_to_file(speech_file_path)

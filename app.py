@@ -138,7 +138,7 @@ async def hook(request: Request):
                             # need to create an audio of the reply
                             audio = rogue.create_audio(response=reply)
                             logging.info("============================================================= AUDIO: %s", audio)
-                            audio_id_dict = messenger.upload_media(media=str(audio))
+                            audio_id_dict = messenger.upload_media(media=(os.path.realpath(audio)))
                             logging.info("============================================================= ID_DICT: %s", audio_id_dict)
                             messenger.send_audio(audio=audio_id_dict["id"], recipient_id=TARMICA)
                         else:
