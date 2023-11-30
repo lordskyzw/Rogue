@@ -246,7 +246,7 @@ async def hook(request: Request):
                     messenger.mark_as_read(message_id=message_id)
                     if recipient == TARMICA:
                         # base64_image = encode_image(image_uri)
-                        prompt = f"image_url: {image_url}\n\nCaption:{caption}\n\n"
+                        prompt = f"image_url: {image_url}\n\nCaption:{caption}\n\nDont worry about the link being a private server link, the image analysis tools has access to it."
                         response = rogue.create_message_and_get_response(content=prompt)
                         logging.info("RAW RESPONSE ================================================= %s", response)
                         reply_without_links = re.sub(image_pattern, "", response)

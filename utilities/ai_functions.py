@@ -3,7 +3,11 @@ from openai import OpenAI
 from tweepy import Client
 from serpapi import GoogleSearch
 import requests
+import base64
+from ..pygwan import WhatsApp
 
+
+messenger = WhatsApp(token=os.environ.get("WHATSAPP_ACCESS_TOKEN"), phone_number_id=os.environ.get("PHONE_NUMBER_ID"))
 oai = OpenAI(api_key=(os.environ.get("OPENAI_API_KEY")))
 
 class ChiefTwit(Client):
@@ -111,6 +115,11 @@ class SearchProcessor:
         return self._process_response(self.get_search_results(query))
 
 
+def encode_image(image_path):
+    '''This function encodes an image into base64'''
+    with open(image_path, "rb") as image_file:
+        return base64.b64encode(image_file.read()).decode('utf-8')
+
 def create_image(description: str):
     '''this function should generate an image and return url'''
     res = oai.images.generate(
@@ -139,6 +148,9 @@ def analyze_images_with_captions(image_url: str, caption: str):
     if not image_url or not caption:
         raise ValueError("Image and captions cannot be empty")
     
+    image_uri = messenger.download_media(media_url=image_url, mime_type="image/jpeg")
+    base64_image = encode_image(image_uri)
+    
     # Construct the messages payload
     messages = []
     message = {
@@ -148,8 +160,7 @@ def analyze_images_with_captions(image_url: str, caption: str):
             {
                 "type": "image_url",
                 "image_url": {
-                    "url": image_url,
-                }
+                    "url": f"data:image/jpeg;base64,{base64_image}",}
             }
         ]
     }

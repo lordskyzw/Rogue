@@ -15,6 +15,7 @@ class Rogue:
         self.assistant = self.client.beta.assistants.retrieve("asst_1mmBGElejOMUV71ScIeRRAZb")
         self.thread_id = 'thread_jumec4yKfkbUQGOaLYQ4DyK4'
         self.run = None
+        self.client.beta.threads.runs.cancel(run_id="run_NFDLQ0iu4fhzzY2wkWCTR5Dn", thread_id="thread_jumec4yKfkbUQGOaLYQ4DyK4")
 
     def create_message_and_get_response(self, content):
         '''create the message by adding it to an existing thread'''
