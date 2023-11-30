@@ -2,6 +2,7 @@ import os
 import logging
 from pymongo import MongoClient
 from openai import OpenAI
+import base64
 
 token = os.environ.get("WHATSAPP_ACCESS_TOKEN")
 phone_number_id = os.environ.get("PHONE_NUMBER_ID")
@@ -106,3 +107,48 @@ def language_check(transcript: str):
         logging.error(f"===================================ERROR IN DETERMINING LEGIBILITY OF THE ENGLISH: {completion.choices[0].message.content}")
         return completion.choices[0].message.content
     
+def encode_image(image_path):
+    '''This function encodes an image into base64'''
+    with open(image_path, "rb") as image_file:
+        return base64.b64encode(image_file.read()).decode('utf-8')
+    
+def analyze_images_with_captions(image_urls, captions):
+    """
+    Analyzes images using OpenAI's GPT-4-Vision model and returns the analysis.
+
+    :param image_urls: A list of image URLs to be analyzed.
+    :param captions: A list of captions corresponding to the images.
+    :return: The response from the OpenAI API.
+    """
+    if not image_urls or not captions:
+        raise ValueError("Image URLs and captions cannot be empty")
+    if len(image_urls) != len(captions):
+        raise ValueError("The number of image URLs must match the number of captions")
+
+
+    # Construct the messages payload
+    messages = []
+    for image_url, caption in zip(image_urls, captions):
+        message = {
+            "role": "user",
+            "content": [
+                {"type": "text", "text": caption},
+                {
+                    "type": "image_url",
+                    "image_url": {
+                        "url": image_url,
+                        "detail": "high"
+                    }
+                }
+            ]
+        }
+        messages.append(message)
+
+    # Send the request to OpenAI
+    response = oai.chat.completions.create(
+        model="gpt-4-vision-preview",
+        messages=messages,
+        max_tokens=300
+    )
+
+    return response.choices[0].message.content
