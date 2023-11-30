@@ -111,7 +111,7 @@ async def hook(request: Request):
                                 r = requests.get(image_url, allow_redirects=True)
                                 with open('image.png', 'wb') as f:
                                     f.write(r.content)
-                                with Image.open('image.png') as img:
+                                with Image.open((os.path.realpath('image.png'))) as img:
                                     rgb_im = img.convert('RGB')  # Convert to RGB
                                     rgb_im.save('image.jpeg', 'JPEG', quality=90)  # Save as JPEG with quality 90
                                 image_id_dict = messenger.upload_media(media=(os.path.realpath('image.jpeg')))
