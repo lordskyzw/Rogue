@@ -4,7 +4,7 @@ from tweepy import Client
 from serpapi import GoogleSearch
 import requests
 import base64
-from .pygwan import WhatsApp
+from pygwan import WhatsApp
 
 
 messenger = WhatsApp(token=os.environ.get("WHATSAPP_ACCESS_TOKEN"), phone_number_id=os.environ.get("PHONE_NUMBER_ID"))
