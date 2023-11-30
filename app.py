@@ -1,5 +1,6 @@
 import os
 import re
+import requests
 import openai
 from utilities.tools import recipients_database, check_id_database, add_id_to_database, save_thread_id, get_thread_id, language_check
 from admin import Rogue, Kim
@@ -106,11 +107,14 @@ async def hook(request: Request):
                         if reply_contains_image:
                             logging.info("============================================================= :::CONTAINS IMAGE")
                             for image_url in reply_contains_image:
+                                r = requests.get(image_url, allow_redirects=True)
+                                open('images/image.png', 'wb').write(r.content)
+                                image_id_dict = messenger.upload_media(media=(os.path.realpath('images/image.png')))
                                 messenger.send_image(
-                                    image=image_url,
+                                    image=image_id_dict["id"],
                                     recipient_id=TARMICA,
                                     caption=reply_without_links,
-                                    link=True,
+                                    link=False,
                                 )
                         else:
                             messenger.reply_to_message(message_id=message_id, recipient_id=TARMICA, message=response)
@@ -159,11 +163,14 @@ async def hook(request: Request):
                                 if reply_contains_image:
                                     logging.info("============================================================= ::: CONTAINS IMAGE")
                                     for image_url in reply_contains_image:
+                                        r = requests.get(image_url, allow_redirects=True)
+                                        open('images/image.png', 'wb').write(r.content)
+                                        image_id_dict = messenger.upload_media(media=(os.path.realpath('images/image.png')))
                                         messenger.send_image(
-                                            image=image_url,
+                                            image=image_id_dict["id"],
                                             recipient_id=TARMICA,
                                             caption=reply_without_links,
-                                            link=True,
+                                            link=False,
                                         )
                                 else:
                                     audio = rogue.create_audio(script=reply)
