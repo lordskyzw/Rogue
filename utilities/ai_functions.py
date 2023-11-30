@@ -128,7 +128,7 @@ def create_image(description: str):
     except Exception as e:
         return str(e)
 
-def analyze_images_with_captions(base64_image, caption):
+def analyze_images_with_captions(image_url: str, caption: str):
     """
     Analyzes images using OpenAI's GPT-4-Vision model and returns the analysis.
 
@@ -136,7 +136,7 @@ def analyze_images_with_captions(base64_image, caption):
     :param captions: A list of captions corresponding to the images.
     :return: The response from the OpenAI API.
     """
-    if not base64_image or not caption:
+    if not image_url or not caption:
         raise ValueError("Image and captions cannot be empty")
     
     # Construct the messages payload
@@ -148,7 +148,7 @@ def analyze_images_with_captions(base64_image, caption):
             {
                 "type": "image_url",
                 "image_url": {
-                    "url": f"data:image/jpeg;base64,{base64_image}",
+                    "url": image_url,
                 }
             }
         ]

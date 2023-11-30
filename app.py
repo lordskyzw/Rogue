@@ -237,15 +237,16 @@ async def hook(request: Request):
                     image = messenger.get_image(data=data)
                     image_id = image["id"]
                     image_url = messenger.query_media_url(image_id)
-                    image_uri = messenger.download_media(
-                        media_url=image_url, mime_type="image/jpeg"
-                    )
+                    logging.info("IMAGE URL: =====================================================================  %s", image_url)
+                    # image_uri = messenger.download_media(
+                    #     media_url=image_url, mime_type="image/jpeg"
+                    # )
                     caption = messenger.extract_caption(data=data)
                     logging.info("CAPTION: =====================================================================  %s", caption)
                     messenger.mark_as_read(message_id=message_id)
                     if recipient == TARMICA:
-                        base64_image = encode_image(image_uri)
-                        prompt = f"Image: {base64_image}\n\nCaption:{caption}\n\n"
+                        # base64_image = encode_image(image_uri)
+                        prompt = f"image_url: {image_url}\n\nCaption:{caption}\n\n"
                         response = rogue.create_message_and_get_response(content=prompt)
                         logging.info("RAW RESPONSE ================================================= %s", response)
                         reply_without_links = re.sub(image_pattern, "", response)
