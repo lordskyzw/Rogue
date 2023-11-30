@@ -969,6 +969,27 @@ class WhatsApp(object):
         if "messages" in data:
             if "image" in data["messages"][0]:
                 return data["messages"][0]["image"]
+    
+    def extract_caption(self, data: Dict[Any, Any]) -> Union[str, None]:
+        """
+        Extracts the caption from a nested data structure typical of a WhatsApp business account message.
+
+        :param data: The nested dictionary and list structure containing the message data.
+        :return: The extracted caption or None if no caption is found.
+        """
+        # Navigate through the structure to the 'entry' list
+        if 'entry' in data and isinstance(data['entry'], list):
+            for entry in data['entry']:
+                # Navigate through the 'changes' list
+                if 'changes' in entry and isinstance(entry['changes'], list):
+                    for change in entry['changes']:
+                        # Check for 'messages' in 'value'
+                        if 'value' in change and 'messages' in change['value'] and isinstance(change['value']['messages'], list):
+                            for message in change['value']['messages']:
+                                # Check for 'image' type and extract 'caption'
+                                if message.get('type') == 'image' and 'image' in message and 'caption' in message['image']:
+                                    return message['image']['caption']
+        return None
 
     def get_document(self, data: Dict[Any, Any]) -> Union[Dict, None]:
         """ "

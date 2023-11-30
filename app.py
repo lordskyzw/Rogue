@@ -57,7 +57,6 @@ async def verify_token(request: Request):
 
 @app.post("/rogue")
 async def hook(request: Request):
-    logging.info("Received webhook")
     data = await request.json()
     logging.info("Received webhook data: %s", data)
     changed_field = messenger.changed_field(data)
@@ -98,7 +97,6 @@ async def hook(request: Request):
                     if recipient == TARMICA:
                         response = rogue.create_message_and_get_response(content=message)
                         logging.info("RAW RESPONSE=================================================%s", response)
-                        reply_contains_image = re.findall(image_pattern, response)
                         reply_without_links = re.sub(image_pattern, "", response)
                         colon_index = reply_without_links.find(":")
                         if colon_index != -1:
@@ -238,14 +236,56 @@ async def hook(request: Request):
                 elif message_type == "image":
                     image = messenger.get_image(data=data)
                     image_id = image["id"]
-                    messenger.mark_as_read_by_winter(message_id=message_id)
                     image_url = messenger.query_media_url(image_id)
                     image_uri = messenger.download_media(
                         media_url=image_url, mime_type="image/jpeg"
                     )
+                    caption = messenger.extract_caption(data=data)
+                    logging.info("CAPTION: =====================================================================  %s", caption)
+                    messenger.mark_as_read(message_id=message_id)
                     if recipient == TARMICA:
                         base64_image = encode_image(image_uri)
-                        
+                        prompt = f"Image: {base64_image}\n\nCaption:{caption}\n\n"
+                        response = rogue.create_message_and_get_response(content=prompt)
+                        logging.info("RAW RESPONSE ================================================= %s", response)
+                        reply_without_links = re.sub(image_pattern, "", response)
+                        colon_index = reply_without_links.find(":")
+                        if colon_index != -1:
+                            reply_without_links = reply_without_links[:colon_index]
+                            reply_without_links = reply_without_links.strip()
+                        url_match = re.search(r"!\[.*?\]\((https.*?)\)", response)
+                        if url_match:
+                            extracted_url = url_match.group(1)
+                            logging.info("==================================================== EXTRACTED URL: %s", extracted_url)
+                            r = requests.get(extracted_url, allow_redirects=True)
+                            image_name = f'{uuid.uuid4()}.png'
+                            with open(image_name, 'wb') as f:
+                                f.write(r.content)
+                                f.close()
+                                logging.info(f"==================================================== SAVED IMAGE AS: {image_name}")
+                            try:
+                                new_image_name = f'{uuid.uuid4()}.jpeg'
+                                with Image.open((os.path.realpath(image_name))) as img:
+                                    rgb_im = img.convert('RGB')  # Convert to RGB
+                                    rgb_im.save(new_image_name, 'JPEG', quality=90)  # Save as JPEG with quality 90
+                                image_id_dict = messenger.upload_media(media=(os.path.realpath(new_image_name)))
+                                messenger.send_image(
+                                image=image_id_dict["id"],
+                                recipient_id=TARMICA,
+                                caption=reply_without_links,
+                                link=False,)
+                                os.remove(path=(os.path.realpath(image_name)))
+                                os.remove(path=(os.path.realpath(new_image_name)))
+                            except IOError as e:
+                                logging.error(f"==================================================== ERROR OCCURED: {e}")
+                                messenger.send_message(message=f"Error occured: {e}", recipient_id=TARMICA)
+                            except Exception as e:
+                                logging.error(f"==================================================== ERROR OCCURED: {e}")
+                                messenger.send_message(message=f"Error occured: {e}", recipient_id=TARMICA)  
+                        else:
+                            messenger.reply_to_message(message_id=message_id, recipient_id=TARMICA, message=response)
+                ############################# End Image Message Handling ####################################################################################
+                           
                 elif message_type == "document":
                     messenger.send_message(
                         "I don't know how to handle documents yet", mobile

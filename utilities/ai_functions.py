@@ -128,6 +128,42 @@ def create_image(description: str):
     except Exception as e:
         return str(e)
 
+def analyze_images_with_captions(base64_image, caption):
+    """
+    Analyzes images using OpenAI's GPT-4-Vision model and returns the analysis.
+
+    :param image_urls: A list of image URLs to be analyzed.
+    :param captions: A list of captions corresponding to the images.
+    :return: The response from the OpenAI API.
+    """
+    if not base64_image or not caption:
+        raise ValueError("Image and captions cannot be empty")
+    
+    # Construct the messages payload
+    messages = []
+    message = {
+        "role": "user",
+        "content": [
+            {"type": "text", "text": caption},
+            {
+                "type": "image_url",
+                "image_url": {
+                    "url": f"data:image/jpeg;base64,{base64_image}",
+                }
+            }
+        ]
+    }
+    messages.append(message)
+
+    # Send the request to OpenAI
+    response = oai.chat.completions.create(
+        model="gpt-4-vision-preview",
+        messages=messages,
+        max_tokens=300
+    )
+
+    return response.choices[0].message.content
+
 def search(query):
     google = GoogleSearch(params_dict={'q': query, 'api_key': os.environ.get('SERP_API_KEY')})
     results = google.get_results()
