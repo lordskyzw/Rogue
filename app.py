@@ -2,6 +2,7 @@ import os
 import re
 import requests
 import openai
+from PIL import Image
 from utilities.tools import recipients_database, check_id_database, add_id_to_database, save_thread_id, get_thread_id, language_check
 from admin import Rogue, Kim
 from fastapi import FastAPI, Request, Response
@@ -108,8 +109,12 @@ async def hook(request: Request):
                             logging.info("============================================================= :::CONTAINS IMAGE")
                             for image_url in reply_contains_image:
                                 r = requests.get(image_url, allow_redirects=True)
-                                open('image.png', 'wb').write(r.content)
-                                image_id_dict = messenger.upload_media(media=(os.path.realpath('image.png')))
+                                with open('image.png', 'wb') as f:
+                                    f.write(r.content)
+                                with Image.open('image.png') as img:
+                                    rgb_im = img.convert('RGB')  # Convert to RGB
+                                    rgb_im.save('image.jpeg', 'JPEG', quality=90)  # Save as JPEG with quality 90
+                                image_id_dict = messenger.upload_media(media=(os.path.realpath('image.jpeg')))
                                 messenger.send_image(
                                     image=image_id_dict["id"],
                                     recipient_id=TARMICA,
