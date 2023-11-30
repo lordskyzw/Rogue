@@ -109,6 +109,7 @@ async def hook(request: Request):
                         if reply_contains_image:
                             logging.info("============================================================= :::CONTAINS IMAGE")
                             for image_url in reply_contains_image:
+                                logging.info(f"==================================================== IMAGE URL: {image_url}")
                                 r = requests.get(image_url, allow_redirects=True)
                                 image_name = f'{uuid.uuid4()}.png'
                                 with open(image_name, 'wb') as f:
