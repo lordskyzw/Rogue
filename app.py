@@ -106,38 +106,38 @@ async def hook(request: Request):
                             reply_without_links = reply_without_links[:colon_index]
                             # Remove leading and trailing spaces
                             reply_without_links = reply_without_links.strip()
-                        if reply_contains_image:
-                            logging.info("============================================================= :::CONTAINS IMAGE")
-                            for image_url in reply_contains_image:
-                                logging.info(f"==================================================== IMAGE URL: {image_url}")
-                                r = requests.get(image_url, allow_redirects=True)
-                                image_name = f'{uuid.uuid4()}.png'
-                                with open(image_name, 'wb') as f:
-                                    f.write(r.content)
-                                    f.close()
-                                    logging.info(f"==================================================== SAVED IMAGE AS: {image_name}")
-                                try:
-                                    new_image_name = f'{uuid.uuid4()}.jpeg'
-                                    with Image.open((os.path.realpath(image_name))) as img:
-                                        rgb_im = img.convert('RGB')  # Convert to RGB
-                                        rgb_im.save(new_image_name, 'JPEG', quality=90)  # Save as JPEG with quality 90
-                                    image_id_dict = messenger.upload_media(media=(os.path.realpath(new_image_name)))
-                                    messenger.send_image(
-                                    image=image_id_dict["id"],
-                                    recipient_id=TARMICA,
-                                    caption=reply_without_links,
-                                    link=False,)
-                                    os.remove(path=(os.path.realpath(image_name)))
-                                    os.remove(path=(os.path.realpath(new_image_name)))
-                                except IOError as e:
-                                    logging.error(f"==================================================== ERROR OCCURED: {e}")
-                                    messenger.send_message(message=f"Error occured: {e}", recipient_id=TARMICA)
-                                except Exception as e:
-                                    logging.error(f"==================================================== ERROR OCCURED: {e}")
-                                    messenger.send_message(message=f"Error occured: {e}", recipient_id=TARMICA)  
+                            url_match = re.search(r"!\[.*?\]\((https.*?)\)", response)
+                        if url_match:
+                            extracted_url = url_match.group(1)
+                            logging.info("==================================================== EXTRACTED URL: %s", extracted_url)
+                            r = requests.get(extracted_url, allow_redirects=True)
+                            image_name = f'{uuid.uuid4()}.png'
+                            with open(image_name, 'wb') as f:
+                                f.write(r.content)
+                                f.close()
+                                logging.info(f"==================================================== SAVED IMAGE AS: {image_name}")
+                            try:
+                                new_image_name = f'{uuid.uuid4()}.jpeg'
+                                with Image.open((os.path.realpath(image_name))) as img:
+                                    rgb_im = img.convert('RGB')  # Convert to RGB
+                                    rgb_im.save(new_image_name, 'JPEG', quality=90)  # Save as JPEG with quality 90
+                                image_id_dict = messenger.upload_media(media=(os.path.realpath(new_image_name)))
+                                messenger.send_image(
+                                image=image_id_dict["id"],
+                                recipient_id=TARMICA,
+                                caption=reply_without_links,
+                                link=False,)
+                                os.remove(path=(os.path.realpath(image_name)))
+                                os.remove(path=(os.path.realpath(new_image_name)))
+                            except IOError as e:
+                                logging.error(f"==================================================== ERROR OCCURED: {e}")
+                                messenger.send_message(message=f"Error occured: {e}", recipient_id=TARMICA)
+                            except Exception as e:
+                                logging.error(f"==================================================== ERROR OCCURED: {e}")
+                                messenger.send_message(message=f"Error occured: {e}", recipient_id=TARMICA)  
                         else:
-                            messenger.reply_to_message(message_id=message_id, recipient_id=TARMICA, message=response)
-                        
+                                messenger.reply_to_message(message_id=message_id, recipient_id=TARMICA, message=response)
+                            
                     else:
                         #retrieve the user's thread object
                         thread_id = get_thread_id(recipient=recipient)
