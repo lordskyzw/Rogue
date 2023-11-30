@@ -1,6 +1,5 @@
 import os
 from openai import OpenAI
-from ..pygwan import WhatsApp
 from tweepy import Client
 from serpapi import GoogleSearch
 import requests
