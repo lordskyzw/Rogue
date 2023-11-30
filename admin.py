@@ -93,7 +93,7 @@ class Rogue:
                         return f"something went wrong while executing the create_image function\nError: {e}"
                 elif func_name == "analyze_images_with_captions":
                     try:
-                        output = analyze_images_with_captions(arguments["base64_image"], arguments["caption"])
+                        output = analyze_images_with_captions(image_url=arguments["image_url"], caption=arguments["caption"])
                         tools_output.append({
                             "tool_call_id": action["id"],
                             "output": output
