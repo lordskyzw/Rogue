@@ -108,7 +108,7 @@ async def hook(request: Request):
                             logging.info("============================================================= :::CONTAINS IMAGE")
                             for image_url in reply_contains_image:
                                 r = requests.get(image_url, allow_redirects=True)
-                                open('images/image.png', 'wb').write(r.content)
+                                open('image.png', 'wb').write(r.content)
                                 image_id_dict = messenger.upload_media(media=(os.path.realpath('images/image.png')))
                                 messenger.send_image(
                                     image=image_id_dict["id"],
