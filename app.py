@@ -1,6 +1,7 @@
 import os
 import re
 import requests
+import uuid
 import openai
 from PIL import Image
 from utilities.tools import recipients_database, check_id_database, add_id_to_database, save_thread_id, get_thread_id, language_check
@@ -109,18 +110,30 @@ async def hook(request: Request):
                             logging.info("============================================================= :::CONTAINS IMAGE")
                             for image_url in reply_contains_image:
                                 r = requests.get(image_url, allow_redirects=True)
-                                with open('image.png', 'wb') as f:
+                                image_name = f'{uuid.uuid4()}.png'
+                                with open(image_name, 'wb') as f:
                                     f.write(r.content)
-                                with Image.open((os.path.realpath('image.png'))) as img:
-                                    rgb_im = img.convert('RGB')  # Convert to RGB
-                                    rgb_im.save('image.jpeg', 'JPEG', quality=90)  # Save as JPEG with quality 90
-                                image_id_dict = messenger.upload_media(media=(os.path.realpath('image.jpeg')))
-                                messenger.send_image(
+                                    f.close()
+                                    logging.info(f"==================================================== SAVED IMAGE AS: {image_name}")
+                                try:
+                                    new_image_name = f'{uuid.uuid4()}.jpeg'
+                                    with Image.open((os.path.realpath(image_name))) as img:
+                                        rgb_im = img.convert('RGB')  # Convert to RGB
+                                        rgb_im.save(new_image_name, 'JPEG', quality=90)  # Save as JPEG with quality 90
+                                    image_id_dict = messenger.upload_media(media=(os.path.realpath(new_image_name)))
+                                    messenger.send_image(
                                     image=image_id_dict["id"],
                                     recipient_id=TARMICA,
                                     caption=reply_without_links,
-                                    link=False,
-                                )
+                                    link=False,)
+                                    os.remove(path=(os.path.realpath(image_name)))
+                                    os.remove(path=(os.path.realpath(new_image_name)))
+                                except IOError as e:
+                                    logging.error(f"==================================================== ERROR OCCURED: {e}")
+                                    messenger.send_message(message=f"Error occured: {e}", recipient_id=TARMICA)
+                                except Exception as e:
+                                    logging.error(f"==================================================== ERROR OCCURED: {e}")
+                                    messenger.send_message(message=f"Error occured: {e}", recipient_id=TARMICA)  
                         else:
                             messenger.reply_to_message(message_id=message_id, recipient_id=TARMICA, message=response)
                         
