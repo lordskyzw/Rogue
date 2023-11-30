@@ -1,5 +1,5 @@
 import os
-import uvicorn
+import re
 import openai
 from utilities.tools import recipients_database, check_id_database, add_id_to_database, save_thread_id, get_thread_id, language_check
 from admin import Rogue, Kim
@@ -29,14 +29,13 @@ whitelist = [
     "263712463290"
 ]
 
+image_pattern = r"https?://(?:[a-zA-Z0-9\-]+\.)+[a-zA-Z]{2,6}(?:/[^/#?]+)+\.(?:png|jpe?g|gif|webp|bmp|tiff|svg)"
+
 app = FastAPI()
 
 logging.basicConfig(
     level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
 )
-
-logging.info("Started FastAPI server")
-
 
 @app.get("/")
 async def welcome():
@@ -44,15 +43,11 @@ async def welcome():
 
 @app.get("/rogue")
 async def verify_token(request: Request):
-    # Access query parameters
     hub_verify_token = request.query_params.get("hub.verify_token")
     hub_challenge = request.query_params.get("hub.challenge")
-
     if hub_verify_token == VERIFY_TOKEN:
         logging.info("Verified webhook")
-        # Create a plain text response
         return Response(content=hub_challenge, media_type="text/plain")
-    
     logging.error("Webhook Verification failed")
     return "Invalid verification token"
 
@@ -99,7 +94,26 @@ async def hook(request: Request):
                     message = messenger.get_message(data)
                     if recipient == TARMICA:
                         response = rogue.create_message_and_get_response(content=message)
-                        messenger.reply_to_message(message_id=message_id, recipient_id=TARMICA, message=response)
+                        logging.info("RAW RESPONSE=================================================%s", response)
+                        reply_contains_image = re.findall(image_pattern, response)
+                        reply_without_links = re.sub(image_pattern, "", response)
+                        colon_index = reply_without_links.find(":")
+                        if colon_index != -1:
+                            # Extract the substring before the colon (excluding the colon)
+                            reply_without_links = reply_without_links[:colon_index]
+                            # Remove leading and trailing spaces
+                            reply_without_links = reply_without_links.strip()
+                        if reply_contains_image:
+                            logging.info("============================================================= :::CONTAINS IMAGE")
+                            for image_url in reply_contains_image:
+                                messenger.send_image(
+                                    image=image_url,
+                                    recipient_id=TARMICA,
+                                    caption=reply_without_links,
+                                    link=True,
+                                )
+                        else:
+                            messenger.reply_to_message(message_id=message_id, recipient_id=TARMICA, message=response)
                         
                     else:
                         #retrieve the user's thread object
@@ -116,7 +130,7 @@ async def hook(request: Request):
                 ######################## Audio Message Handling ###########################################
                 elif message_type == "audio":
                     audio = messenger.get_audio(data=data)
-                    audio_id, mime_type = audio["id"], audio["mime_type"]
+                    audio_id = audio["id"]
                     messenger.mark_as_read_by_winter(message_id=message_id)
                     audio_url = messenger.query_media_url(audio_id)
                     audio_uri = messenger.download_media(
@@ -134,9 +148,27 @@ async def hook(request: Request):
                         if recipient == TARMICA:
                             if language_check(transcript=transcript):
                                 reply = rogue.create_message_and_get_response(content=transcript)
-                                audio = rogue.create_audio(response=reply)
-                                audio_id_dict = messenger.upload_media(media=(os.path.realpath(audio)))
-                                messenger.send_audio(audio=audio_id_dict["id"], recipient_id=TARMICA, link=False)
+                                reply_contains_image = re.findall(image_pattern, response)
+                                reply_without_links = re.sub(image_pattern, "", response)
+                                colon_index = reply_without_links.find(":")
+                                if colon_index != -1:
+                                    # Extract the substring before the colon (excluding the colon)
+                                    reply_without_links = reply_without_links[:colon_index]
+                                    # Remove leading and trailing spaces
+                                    reply_without_links = reply_without_links.strip()
+                                if reply_contains_image:
+                                    logging.info("============================================================= ::: CONTAINS IMAGE")
+                                    for image_url in reply_contains_image:
+                                        messenger.send_image(
+                                            image=image_url,
+                                            recipient_id=TARMICA,
+                                            caption=reply_without_links,
+                                            link=True,
+                                        )
+                                else:
+                                    audio = rogue.create_audio(script=reply)
+                                    audio_id_dict = messenger.upload_media(media=(os.path.realpath(audio)))
+                                    messenger.send_audio(audio=audio_id_dict["id"], recipient_id=TARMICA, link=False)
                             elif language_check(transcript=transcript)==False:
                                 messenger.reply_to_message(message_id=message_id, message="Sorry Tarmica, I didnt quite get that, may you please be clearer?", recipient_id=TARMICA)
                             else:
@@ -149,7 +181,7 @@ async def hook(request: Request):
                             kim = Kim(thread_id=thread_id)
                             if language_check(transcript=transcript):
                                 reply = kim.create_message_and_get_response(content=transcript)
-                                audio = kim.create_audio(response=reply)
+                                audio = kim.create_audio(script=reply)
                                 audio_id_dict = messenger.upload_media(media=(os.path.realpath(audio)))
                                 messenger.send_audio(audio=audio_id_dict["id"], recipient_id=recipient, link=False)
                             elif language_check(transcript=transcript)==False:
@@ -159,6 +191,15 @@ async def hook(request: Request):
                     except Exception as e:
                         messenger.reply_to_message(message_id=message_id, message=f"error occured {e.with_traceback()}", recipient_id=recipient)           
                 ############################# End Audio Message Handling ######################################
+                elif message_type == "image":
+                    image = messenger.get_image(data=data)
+                    image_id = image["id"]
+                    messenger.mark_as_read_by_winter(message_id=message_id)
+                    image_url = messenger.query_media_url(image_id)
+                    image_uri = messenger.download_media(
+                        media_url=image_url, mime_type="image/jpeg"
+                    )
+                    image_file = open(image_uri, "rb")
                 elif message_type == "document":
                     messenger.send_message(
                         "I don't know how to handle documents yet", mobile

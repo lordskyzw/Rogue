@@ -1,7 +1,11 @@
 import os
+from openai import OpenAI
+from ..pygwan import WhatsApp
 from tweepy import Client
 from serpapi import GoogleSearch
 import requests
+
+oai = OpenAI(api_key=(os.environ.get("OPENAI_API_KEY")))
 
 class ChiefTwit(Client):
     def __init__(self):
@@ -108,8 +112,22 @@ class SearchProcessor:
         return self._process_response(self.get_search_results(query))
 
 
-def set_rate():
-    pass
+def create_image(description: str):
+    '''this function should generate an image and return url'''
+    res = oai.images.generate(
+        prompt=description,
+        model="dall-e-3",
+        n=1,
+        quality="standard",
+        style="vivid",
+        size="1024x1024",
+        response_format="url"
+        )
+    try:
+        url = res.data[0].url
+        return url
+    except Exception as e:
+        return str(e)
 
 def search(query):
     google = GoogleSearch(params_dict={'q': query, 'api_key': os.environ.get('SERP_API_KEY')})

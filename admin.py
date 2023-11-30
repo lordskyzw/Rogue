@@ -81,6 +81,16 @@ class Rogue:
                     except Exception as e:
                         self.client.beta.threads.runs.cancel(run_id="run_TCi7Umz483eMPFzCQRumgMuA", thread_id="thread_jumec4yKfkbUQGOaLYQ4DyK4")
                         return f"something went wrong while executing the Search function\nError: {e}"
+                elif func_name == "create_image":
+                    try:
+                        output = create_image(arguments["description"])
+                        tools_output.append({
+                            "tool_call_id": action["id"],
+                            "output": output
+                        })
+                    except Exception as e:
+                        self.client.beta.threads.runs.cancel(run_id="run_TCi7Umz483eMPFzCQRumgMuA", thread_id="thread_jumec4yKfkbUQGOaLYQ4DyK4")
+                        return f"something went wrong while executing the Search function\nError: {e}"
                 else:
                     logging.info("+++++++++++++++++++++++ FUNCTION REQUIRED NOT FOUND! ++++++++++++++++++++++++")
 
@@ -120,15 +130,15 @@ class Rogue:
             assistant_messages = [msg for msg in messages.data if msg.role == "assistant"]
             response = assistant_messages[0].content[0].text.value
             return response
-    def create_audio(self, response):
-        '''takes in an audio file and returns an audio response from openai!'''
+    def create_audio(self, script):
+        '''takes in a script and returns an audio file path'''
         try:
             speech_file_path = Path(__file__).parent / "speech.aac"
             response = self.client.audio.speech.create(
             model="tts-1",
             voice="nova",
             response_format="aac",
-            input=response
+            input=script
             )
             response.stream_to_file(speech_file_path)
             return speech_file_path
@@ -240,15 +250,15 @@ class Kim:
             assistant_messages = [msg for msg in messages.data if msg.role == "assistant"]
             response = assistant_messages[0].content[0].text.value
             return response
-    def create_audio(self, response):
-        '''takes in an audio file and returns an audio response from openai!'''
+    def create_audio(self, script):
+        '''takes in a script and returns an audio file path'''
         try:
             speech_file_path = Path(__file__).parent / "speech.aac"
             response = self.client.audio.speech.create(
             model="tts-1",
             voice="nova",
             response_format="aac",
-            input=response
+            input=script
             )
             response.stream_to_file(speech_file_path)
             return speech_file_path
