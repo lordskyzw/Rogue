@@ -1,17 +1,20 @@
-import os
-import logging
+import os, logging, uuid, requests, re, base64
 from pymongo import MongoClient
 from openai import OpenAI
-import base64
+from pygwan import WhatsApp
+from PIL import Image
+from admin import Kim, Rogue
 
 token = os.environ.get("WHATSAPP_ACCESS_TOKEN")
 phone_number_id = os.environ.get("PHONE_NUMBER_ID")
-v15_base_url = "https://graph.facebook.com/v17.0"
 openai_api_key = str(os.environ.get("OPENAI_API_KEY"))
+messenger = WhatsApp(token=token, phone_number_id=phone_number_id)
+oai = OpenAI(api_key=openai_api_key)
+
+
 logging.basicConfig(
     level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
 )
-oai = OpenAI(api_key=(os.environ.get("OPENAI_API_KEY")))
 
 ######################################## users database functions ########################################
 def recipients_database():
@@ -53,6 +56,8 @@ def add_id_to_database(message_stamp: str):
     document = {"message_stamp": message_stamp}
     collection.insert_one(document)
     client.close()  
+ 
+######################################### thread functions ##############################################
     
 def save_thread_id(thread_id : str, recipient):
     """saves a user's thread id in the MongoDB database."""
@@ -86,6 +91,8 @@ def get_thread_id(recipient):
     else:
         return "no thread found" # Or a default rate if not found
     
+########################################## miscellenous functions ########################################    
+    
 def language_check(transcript: str):
     '''This function checks if the argument is english which makes sense or not'''
     content = f"""Classes: [`sensible`, `non-sensible`]
@@ -111,4 +118,94 @@ def encode_image(image_path):
     '''This function encodes an image into base64'''
     with open(image_path, "rb") as image_file:
         return base64.b64encode(image_file.read()).decode('utf-8')
+
+def link_removal(response: str):
+    '''this function takes in the response from the assistant and removes the links from it'''
+    image_pattern = r"https?://(?:[a-zA-Z0-9\-]+\.)+[a-zA-Z]{2,6}(?:/[^/#?]+)+\.(?:png|jpe?g|gif|webp|bmp|tiff|svg)"
+    reply_without_links = re.sub(image_pattern, "", response)
+    colon_index = reply_without_links.find(":")
+    if colon_index != -1:
+        reply_without_links = reply_without_links[:colon_index]
+        reply_without_links = reply_without_links.strip()
+    return reply_without_links
+
+def response_handler(response: str, recipient_id: str, message_id: str):
+    '''this function takes in the response from the assistant, checks if it contains a link,
+    if it does, it extracts the link and sends the image to the user,
+    if it doesn't, it sends the response to the user'''
+    reply_without_links = link_removal(response=response)
+    url_match = re.search(r"!\[.*?\]\((https.*?)\)", response)
+    if url_match:
+        extracted_url = url_match.group(1)
+        logging.info("==================================================== EXTRACTED URL: %s", extracted_url)
+        r = requests.get(extracted_url, allow_redirects=True)
+        image_name = f'{uuid.uuid4()}.png'
+        with open(image_name, 'wb') as f:
+            f.write(r.content)
+            f.close()
+            logging.info(f"==================================================== SAVED IMAGE AS: {image_name}")
+        try:
+            new_image_name = f'{uuid.uuid4()}.jpeg'
+            with Image.open((os.path.realpath(image_name))) as img:
+                rgb_im = img.convert('RGB')  # Convert to RGB
+                rgb_im.save(new_image_name, 'JPEG', quality=90)  # Save as JPEG with quality 90
+            image_id_dict = messenger.upload_media(media=(os.path.realpath(new_image_name)))
+            messenger.send_image(
+            image=image_id_dict["id"],
+            recipient_id=recipient_id,
+            caption=reply_without_links,
+            link=False,)
+            # Delete the image from the server
+            os.remove(path=(os.path.realpath(image_name)))
+            os.remove(path=(os.path.realpath(new_image_name)))
+        except IOError as e:
+            logging.error(f"==================================================== ERROR OCCURED: {e}")
+            messenger.send_message(message=f"Error occured: {e}", recipient_id=recipient_id)
+        except Exception as e:
+            logging.error(f"==================================================== ERROR OCCURED: {e}")
+            messenger.send_message(message=f"Error occured: {e}", recipient_id=recipient_id)  
+    else:
+        messenger.reply_to_message(message_id=message_id, recipient_id=recipient_id, message=response)
+        
+def audio_response_handler(response: str, recipient_id: str, message_id: str, ai: Kim | Rogue):
+    '''this function takes in the response from the assistant, checks if it contains a link,
+    if it does, it extracts the link and sends the image to the user,
+    if it doesn't, it sends the response to the user'''
+    reply_without_links = link_removal(response=response)
+    url_match = re.search(r"!\[.*?\]\((https.*?)\)", response)
+    if url_match:
+        extracted_url = url_match.group(1)
+        logging.info("==================================================== EXTRACTED URL: %s", extracted_url)
+        r = requests.get(extracted_url, allow_redirects=True)
+        image_name = f'{uuid.uuid4()}.png'
+        with open(image_name, 'wb') as f:
+            f.write(r.content)
+            f.close()
+            logging.info(f"==================================================== SAVED IMAGE AS: {image_name}")
+        try:
+            new_image_name = f'{uuid.uuid4()}.jpeg'
+            with Image.open((os.path.realpath(image_name))) as img:
+                rgb_im = img.convert('RGB')  # Convert to RGB
+                rgb_im.save(new_image_name, 'JPEG', quality=90)  # Save as JPEG with quality 90
+            image_id_dict = messenger.upload_media(media=(os.path.realpath(new_image_name)))
+            messenger.send_image(
+            image=image_id_dict["id"],
+            recipient_id=recipient_id,
+            caption=reply_without_links,
+            link=False,)
+            # Delete the image from the server
+            os.remove(path=(os.path.realpath(image_name)))
+            os.remove(path=(os.path.realpath(new_image_name)))
+        except IOError as e:
+            logging.error(f"==================================================== ERROR OCCURED: {e}")
+            messenger.send_message(message=f"Error occured: {e}", recipient_id=recipient_id)
+        except Exception as e:
+            logging.error(f"==================================================== ERROR OCCURED: {e}")
+            messenger.send_message(message=f"Error occured: {e}", recipient_id=recipient_id)  
+    else:
+        audio = ai.create_audio(script=response)
+        audio_id_dict = messenger.upload_media(media=(os.path.realpath(audio)))
+        messenger.send_audio(audio=audio_id_dict["id"], recipient_id=recipient_id, link=False)
+        
+
     

@@ -4,7 +4,7 @@ import os
 import time
 import logging
 import json
-from utilities.ai_functions import *
+from ai_functions import *
 
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s")

@@ -1,14 +1,10 @@
 import os
-from openai import OpenAI
 from tweepy import Client
 from serpapi import GoogleSearch
 import requests
 import base64
-from pygwan import WhatsApp
+from tools import messenger, oai
 
-
-messenger = WhatsApp(token=os.environ.get("WHATSAPP_ACCESS_TOKEN"), phone_number_id=os.environ.get("PHONE_NUMBER_ID"))
-oai = OpenAI(api_key=(os.environ.get("OPENAI_API_KEY")))
 
 class ChiefTwit(Client):
     def __init__(self):

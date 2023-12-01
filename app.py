@@ -1,24 +1,13 @@
-import os
-import re
-import requests
-import uuid
+# Description: This is the main file for the AI SYSTEM. It handles all the incoming messages and sends them to the appropriate AI for processing.
 import openai
-from PIL import Image
-from utilities.tools import recipients_database, check_id_database, add_id_to_database, save_thread_id, get_thread_id, language_check, encode_image
-from admin import Rogue, Kim
+from utilities.tools import *
+from utilities.admin import Rogue, Kim
 from fastapi import FastAPI, Request, Response
 import logging
-from pygwan import WhatsApp
 
-openai_api_key = os.environ.get("OPENAI_API_KEY")
-oai = openai.OpenAI(api_key=openai_api_key)
 rogue = Rogue()
-
 recipients_db = recipients_database()
-messenger = WhatsApp(
-    token=os.environ.get("WHATSAPP_ACCESS_TOKEN"),
-    phone_number_id=os.environ.get("PHONE_NUMBER_ID"),
-)
+
 VERIFY_TOKEN = "30cca545-3838-48b2-80a7-9e43b1ae8ce4"
 TARMICA = "263779281345"
 whitelist = [
@@ -31,8 +20,6 @@ whitelist = [
     "263712933306",
     "263712463290"
 ]
-
-image_pattern = r"https?://(?:[a-zA-Z0-9\-]+\.)+[a-zA-Z]{2,6}(?:/[^/#?]+)+\.(?:png|jpe?g|gif|webp|bmp|tiff|svg)"
 
 app = FastAPI()
 
@@ -63,15 +50,14 @@ async def hook(request: Request):
     if changed_field == "messages":
         new_message = messenger.is_message(data)
         if new_message:
-            mobile = messenger.get_mobile(data)
-            recipient = "".join(filter(str.isdigit, mobile))
+            recipient = "".join(filter(str.isdigit, (messenger.get_mobile(data))))
             name = messenger.get_name(data)
             message_type = messenger.get_message_type(data)
             message_id = messenger.get_message_id(data=data)
             message_exists = check_id_database(message_id)
             #handling the echoes from Meta
             if message_exists:
-                logging.error(f"=============================================================== MESSAGE ALREADY IN DATABASE")
+                logging.info(f"=============================================================== MESSAGE ALREADY IN DATABASE")
                 return "OK", 200
             elif not message_exists:
                 add_id_to_database(message_id)
@@ -87,9 +73,7 @@ async def hook(request: Request):
                         recipients_db.insert_one(recipient_obj)
                     except Exception as e:
                         logging.error(f'================================================= THE FOLLOWING ERROR OCCURED: {e}')   
-                logging.info(
-                    f"======================================= NEW MESSAGE FROM:{name}, THREAD_ID:{get_thread_id(recipient=recipient)}"
-                )
+                logging.info(f"======================================= NEW MESSAGE FROM:{name}, THREAD_ID:{get_thread_id(recipient=recipient)}")
                 ############################################### Text Message Handling ##########################################################
                 if message_type == "text":
                     messenger.mark_as_read(message_id=message_id)
@@ -97,45 +81,7 @@ async def hook(request: Request):
                     if recipient == TARMICA:
                         response = rogue.create_message_and_get_response(content=message)
                         logging.info("RAW RESPONSE=================================================%s", response)
-                        reply_without_links = re.sub(image_pattern, "", response)
-                        colon_index = reply_without_links.find(":")
-                        if colon_index != -1:
-                            # Extract the substring before the colon (excluding the colon)
-                            reply_without_links = reply_without_links[:colon_index]
-                            # Remove leading and trailing spaces
-                            reply_without_links = reply_without_links.strip()
-                        url_match = re.search(r"!\[.*?\]\((https.*?)\)", response)
-                        if url_match:
-                            extracted_url = url_match.group(1)
-                            logging.info("==================================================== EXTRACTED URL: %s", extracted_url)
-                            r = requests.get(extracted_url, allow_redirects=True)
-                            image_name = f'{uuid.uuid4()}.png'
-                            with open(image_name, 'wb') as f:
-                                f.write(r.content)
-                                f.close()
-                                logging.info(f"==================================================== SAVED IMAGE AS: {image_name}")
-                            try:
-                                new_image_name = f'{uuid.uuid4()}.jpeg'
-                                with Image.open((os.path.realpath(image_name))) as img:
-                                    rgb_im = img.convert('RGB')  # Convert to RGB
-                                    rgb_im.save(new_image_name, 'JPEG', quality=90)  # Save as JPEG with quality 90
-                                image_id_dict = messenger.upload_media(media=(os.path.realpath(new_image_name)))
-                                messenger.send_image(
-                                image=image_id_dict["id"],
-                                recipient_id=TARMICA,
-                                caption=reply_without_links,
-                                link=False,)
-                                os.remove(path=(os.path.realpath(image_name)))
-                                os.remove(path=(os.path.realpath(new_image_name)))
-                            except IOError as e:
-                                logging.error(f"==================================================== ERROR OCCURED: {e}")
-                                messenger.send_message(message=f"Error occured: {e}", recipient_id=TARMICA)
-                            except Exception as e:
-                                logging.error(f"==================================================== ERROR OCCURED: {e}")
-                                messenger.send_message(message=f"Error occured: {e}", recipient_id=TARMICA)  
-                        else:
-                                messenger.reply_to_message(message_id=message_id, recipient_id=TARMICA, message=response)
-                            
+                        response_handler(response=response, recipient_id=TARMICA, message_id=message_id)    
                     else:
                         #retrieve the user's thread object
                         thread_id = get_thread_id(recipient=recipient)
@@ -144,16 +90,12 @@ async def hook(request: Request):
                             return "OK", 200
                         kim = Kim(thread_id=thread_id)
                         response = kim.create_message_and_get_response(content=message)
-                        messenger.reply_to_message(
-                                message_id=message_id, message=response, recipient_id=mobile
-                            )
+                        response_handler(response=response, recipient_id=recipient, message_id=message_id)
                 ############################## END TEXT MESSAGE HANDLING ################################################################################
                 ######################## Audio Message Handling #########################################################################################
                 elif message_type == "audio":
                     audio = messenger.get_audio(data=data)
-                    audio_id = audio["id"]
-                    messenger.mark_as_read_by_winter(message_id=message_id)
-                    audio_url = messenger.query_media_url(audio_id)
+                    audio_url = messenger.query_media_url(audio["id"])
                     audio_uri = messenger.download_media(
                         media_url=audio_url, mime_type="audio/ogg"
                     )
@@ -166,81 +108,44 @@ async def hook(request: Request):
                         file=audio_file
                         )
                         logging.info(f"====================================================== TRANSCRIPT: {transcript}")
+                        is_audio_sensible_english = language_check(transcript=transcript)
                         if recipient == TARMICA:
-                            if language_check(transcript=transcript):
+                            if is_audio_sensible_english == True:
+                                messenger.mark_as_read(message_id=message_id)
                                 reply = rogue.create_message_and_get_response(content=transcript)
-                                reply_contains_image = re.findall(image_pattern, response)
-                                reply_without_links = re.sub(image_pattern, "", response)
-                                colon_index = reply_without_links.find(":")
-                                if colon_index != -1:
-                                    # Extract the substring before the colon (excluding the colon)
-                                    reply_without_links = reply_without_links[:colon_index]
-                                    # Remove leading and trailing spaces
-                                    reply_without_links = reply_without_links.strip()
-                                    url_match = re.search(r"!\[.*?\]\((https.*?)\)", response)
-                                if url_match:
-                                    extracted_url = url_match.group(1)
-                                    logging.info("==================================================== EXTRACTED URL: %s", extracted_url)
-                                    r = requests.get(extracted_url, allow_redirects=True)
-                                    image_name = f'{uuid.uuid4()}.png'
-                                    with open(image_name, 'wb') as f:
-                                        f.write(r.content)
-                                        f.close()
-                                        logging.info(f"==================================================== SAVED IMAGE AS: {image_name}")
-                                    try:
-                                        new_image_name = f'{uuid.uuid4()}.jpeg'
-                                        with Image.open((os.path.realpath(image_name))) as img:
-                                            rgb_im = img.convert('RGB')  # Convert to RGB
-                                            rgb_im.save(new_image_name, 'JPEG', quality=90)  # Save as JPEG with quality 90
-                                        image_id_dict = messenger.upload_media(media=(os.path.realpath(new_image_name)))
-                                        messenger.send_image(
-                                        image=image_id_dict["id"],
-                                        recipient_id=TARMICA,
-                                        caption=reply_without_links,
-                                        link=False,)
-                                        os.remove(path=(os.path.realpath(image_name)))
-                                        os.remove(path=(os.path.realpath(new_image_name)))
-                                    except IOError as e:
-                                        logging.error(f"==================================================== ERROR OCCURED: {e}")
-                                        messenger.send_message(message=f"Error occured: {e}", recipient_id=TARMICA)
-                                    except Exception as e:
-                                        logging.error(f"==================================================== ERROR OCCURED: {e}")
-                                        messenger.send_message(message=f"Error occured: {e}", recipient_id=TARMICA)
-                                else:
-                                    audio = rogue.create_audio(script=reply)
-                                    audio_id_dict = messenger.upload_media(media=(os.path.realpath(audio)))
-                                    messenger.send_audio(audio=audio_id_dict["id"], recipient_id=TARMICA, link=False)
-                            elif language_check(transcript=transcript)==False:
+                                audio_response_handler(response=reply, recipient_id=TARMICA, message_id=message_id, ai=rogue)
+                                logging.info("===================================== : AUDIO RESPONSE HANDLER CALLED AND RUN SUCCESSFULLY")
+                            elif is_audio_sensible_english == False:
+                                logging.info("=====================================: Laguage check returned false")
                                 messenger.reply_to_message(message_id=message_id, message="Sorry Tarmica, I didnt quite get that, may you please be clearer?", recipient_id=TARMICA)
                             else:
-                                messenger.reply_to_message(message_id=message_id, message=f"In trying to determine if your english is correct or not, an error occured.", recipient_id=TARMICA)
+                                logging.info(f"=====================================: Laguage check returned an error {is_audio_sensible_english}")
+                                messenger.reply_to_message(message_id=message_id, message=f"In trying to determine if your english is correct or not, an error occured:{is_audio_sensible_english}", recipient_id=TARMICA)
                         else:
                             thread_id = get_thread_id(recipient=recipient)
                             if thread_id == "no thread found":
-                                logging.error(f"===============================ERROR: DATABASE OPERATION GONE WRONG LINE 94 in app.py")
+                                logging.error(f"===============================ERROR: THREAD DATABASE OPERATION GONE WRONG")
+                                messenger.reply_to_message(message_id=message_id, message="Sorry, an error occured. Couldnt find a thread for you.\n\nPlease show this message to Tarmica (https://wa.me/263779281345)", recipient_id=recipient)
                                 return "OK", 200
                             kim = Kim(thread_id=thread_id)
-                            if language_check(transcript=transcript):
+                            if is_audio_sensible_english == True:
+                                messenger.mark_as_read(message_id=message_id)
                                 reply = kim.create_message_and_get_response(content=transcript)
-                                audio = kim.create_audio(script=reply)
-                                audio_id_dict = messenger.upload_media(media=(os.path.realpath(audio)))
-                                messenger.send_audio(audio=audio_id_dict["id"], recipient_id=recipient, link=False)
-                            elif language_check(transcript=transcript)==False:
+                                audio_response_handler(response=reply, recipient_id=recipient, message_id=message_id, ai=kim)
+                            elif is_audio_sensible_english == False:
+                                logging.info("=====================================: Laguage check returned false")
                                 messenger.reply_to_message(message_id=message_id, message="I didnt quite get that, may you please be clearer?", recipient_id=recipient)
                             else:
-                                messenger.reply_to_message(message_id=message_id, message=f"In trying to determine if your english is correct or not, an error occured. This is a special case. Please show Tarmica Chiwara (0779281345) this:\n {language_check(transcript=transcript)}", recipient_id=recipient) 
+                                logging.info(f"=====================================: Laguage check returned an error {is_audio_sensible_english}")
+                                messenger.reply_to_message(message_id=message_id, message=f"In trying to determine if your english is correct or not, an error occured:{is_audio_sensible_english}", recipient_id=recipient) 
                     except Exception as e:
                         messenger.reply_to_message(message_id=message_id, message=f"error occured {e.with_traceback()}", recipient_id=recipient)           
                 ############################# End Audio Message Handling ################################################################################
                 ############################# Image Message Handling ####################################################################################
                 elif message_type == "image":
                     image = messenger.get_image(data=data)
-                    image_id = image["id"]
-                    image_url = messenger.query_media_url(image_id)
+                    image_url = messenger.query_media_url(image["id"])
                     logging.info("IMAGE URL: =====================================================================  %s", image_url)
-                    # image_uri = messenger.download_media(
-                    #     media_url=image_url, mime_type="image/jpeg"
-                    # )
                     caption = messenger.extract_caption(data=data)
                     logging.info("CAPTION: =====================================================================  %s", caption)
                     messenger.mark_as_read(message_id=message_id)
@@ -249,53 +154,29 @@ async def hook(request: Request):
                         prompt = f"image_url: {image_url}\n\nCaption:{caption}\n\nDont worry about the link being a private server link, the image analysis tools has access to it."
                         response = rogue.create_message_and_get_response(content=prompt)
                         logging.info("RAW RESPONSE ================================================= %s", response)
-                        reply_without_links = re.sub(image_pattern, "", response)
-                        colon_index = reply_without_links.find(":")
-                        if colon_index != -1:
-                            reply_without_links = reply_without_links[:colon_index]
-                            reply_without_links = reply_without_links.strip()
-                        url_match = re.search(r"!\[.*?\]\((https.*?)\)", response)
-                        if url_match:
-                            extracted_url = url_match.group(1)
-                            logging.info("==================================================== EXTRACTED URL: %s", extracted_url)
-                            r = requests.get(extracted_url, allow_redirects=True)
-                            image_name = f'{uuid.uuid4()}.png'
-                            with open(image_name, 'wb') as f:
-                                f.write(r.content)
-                                f.close()
-                                logging.info(f"==================================================== SAVED IMAGE AS: {image_name}")
-                            try:
-                                new_image_name = f'{uuid.uuid4()}.jpeg'
-                                with Image.open((os.path.realpath(image_name))) as img:
-                                    rgb_im = img.convert('RGB')  # Convert to RGB
-                                    rgb_im.save(new_image_name, 'JPEG', quality=90)  # Save as JPEG with quality 90
-                                image_id_dict = messenger.upload_media(media=(os.path.realpath(new_image_name)))
-                                messenger.send_image(
-                                image=image_id_dict["id"],
-                                recipient_id=TARMICA,
-                                caption=reply_without_links,
-                                link=False,)
-                                os.remove(path=(os.path.realpath(image_name)))
-                                os.remove(path=(os.path.realpath(new_image_name)))
-                            except IOError as e:
-                                logging.error(f"==================================================== ERROR OCCURED: {e}")
-                                messenger.send_message(message=f"Error occured: {e}", recipient_id=TARMICA)
-                            except Exception as e:
-                                logging.error(f"==================================================== ERROR OCCURED: {e}")
-                                messenger.send_message(message=f"Error occured: {e}", recipient_id=TARMICA)  
-                        else:
-                            messenger.reply_to_message(message_id=message_id, recipient_id=TARMICA, message=response)
-                ############################# End Image Message Handling ####################################################################################
-                           
+                        response_handler(response=response, recipient_id=TARMICA, message_id=message_id)
+                    else:
+                        thread_id = get_thread_id(recipient=recipient)
+                        if thread_id == "no thread found":
+                            logging.error(f"===============================ERROR: DATABASE OPERATION GONE WRONG LINE 94 in app.py")
+                            return "OK", 200
+                        kim = Kim(thread_id=thread_id)
+                        prompt = f"image_url: {image_url}\n\nCaption:{caption}\n\nDont worry about the link being a private server link, the image analysis tools has access to it."
+                        response = kim.create_message_and_get_response(content=prompt)
+                        logging.info("RAW RESPONSE ================================================= %s", response)
+                        response_handler(response=response, recipient_id=recipient, message_id=message_id)
+                ############################# End Image Message Handling ###################################################################################
+                ############################# Document Message Handling ####################################################################################         
                 elif message_type == "document":
-                    messenger.send_message(
-                        "I don't know how to handle documents yet", mobile
-                    )
+                    messenger.send_message(message="I don't know how to handle documents yet, but coming soon", recipient_id=recipient)
+                ############################# End Document Message Handling ################################################################################
             else:
                 delivery = messenger.get_delivery(data)
                 if delivery:
                     logging.info(f"Message : {delivery}")
                 else:
                     logging.info("No new message")
-        return "OK", 200
+        else:
+            logging.info("===========================================================================: No new message")
+    return "OK", 200
 
