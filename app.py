@@ -1,7 +1,7 @@
 # Description: This is the main file for the AI SYSTEM. It handles all the incoming messages and sends them to the appropriate AI for processing.
 import openai
-from utilities.tools import *
-from utilities.admin import Rogue, Kim
+from utilities.toolbox import *
+from utilities.agents import Rogue, Kim
 from fastapi import FastAPI, Request, Response
 import logging
 
@@ -71,6 +71,7 @@ async def hook(request: Request):
                         thread_id = thread_response.id
                         save_thread_id(thread_id=thread_id, recipient=recipient)
                         recipients_db.insert_one(recipient_obj)
+                        logging.info(f"++++++++++++++++++++++++++++++++++++++++++++ NEW USER ADDED TO DATABASE: {recipient}")
                     except Exception as e:
                         logging.error(f'================================================= THE FOLLOWING ERROR OCCURED: {e}')   
                 logging.info(f"======================================= NEW MESSAGE FROM:{name}, THREAD_ID:{get_thread_id(recipient=recipient)}")
@@ -86,6 +87,7 @@ async def hook(request: Request):
                         #retrieve the user's thread object
                         thread_id = get_thread_id(recipient=recipient)
                         if thread_id == "no thread found":
+                            messenger.reply_to_message(message_id=message_id, message="Sorry, an error occured. Couldnt find a thread for you.\n\nPlease show this message to Tarmica (https://wa.me/263779281345)", recipient_id=recipient)
                             logging.error(f"===============================ERROR: DATABASE OPERATION GONE WRONG LINE 94 in app.py")
                             return "OK", 200
                         kim = Kim(thread_id=thread_id)

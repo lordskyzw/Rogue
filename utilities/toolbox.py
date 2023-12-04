@@ -3,14 +3,14 @@ from pymongo import MongoClient
 from openai import OpenAI
 from pygwan import WhatsApp
 from PIL import Image
-from admin import Kim, Rogue
+from agents import Kim, Rogue, Agent
+
 
 token = os.environ.get("WHATSAPP_ACCESS_TOKEN")
 phone_number_id = os.environ.get("PHONE_NUMBER_ID")
 openai_api_key = str(os.environ.get("OPENAI_API_KEY"))
 messenger = WhatsApp(token=token, phone_number_id=phone_number_id)
 oai = OpenAI(api_key=openai_api_key)
-
 
 logging.basicConfig(
     level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
@@ -167,10 +167,10 @@ def response_handler(response: str, recipient_id: str, message_id: str):
     else:
         messenger.reply_to_message(message_id=message_id, recipient_id=recipient_id, message=response)
         
-def audio_response_handler(response: str, recipient_id: str, message_id: str, ai: Kim | Rogue):
+def audio_response_handler(response: str, recipient_id: str, message_id: str, ai: Kim | Rogue | Agent):
     '''this function takes in the response from the assistant, checks if it contains a link,
     if it does, it extracts the link and sends the image to the user,
-    if it doesn't, it sends the response to the user'''
+    if it doesn't, it creates and sends the audio response to the user'''
     reply_without_links = link_removal(response=response)
     url_match = re.search(r"!\[.*?\]\((https.*?)\)", response)
     if url_match:

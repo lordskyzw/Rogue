@@ -3,7 +3,7 @@ from tweepy import Client
 from serpapi import GoogleSearch
 import requests
 import base64
-from tools import messenger, oai
+from toolbox import messenger, oai
 
 
 class ChiefTwit(Client):
@@ -38,17 +38,6 @@ class ChiefTwit(Client):
 
     def get_user(self, username):
         self.client.get_user(username)
-
-class WebGallery:
-    def __init__(self):
-        self.api_key = os.environ.get("SERP_API_KEY")
-        self.base_url = "https://serpapi.com/search?engine=google_images"
-
-    def search(self, query):
-        parameters = {"q": query, "engine": "google_images", "api_key": self.api_key}
-        response = requests.get(self.base_url, params=parameters)
-        response = response.json()
-        return response["images_results"][0]["original"]
 
 
 class SearchProcessor:
