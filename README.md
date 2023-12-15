@@ -3,7 +3,7 @@
  <img width=200px height=200px src="https://i.imgur.com/FxL5qM0.jpg" alt="Bot logo"></a>
 </p>
 
-<h3 align="center">Project Title</h3>
+<h3 align="center">Winter</h3>
 
 <div align="center">
 
@@ -17,7 +17,7 @@
 
 ---
 
-<p align="center"> 🤖 Few lines describing what your bot does.
+<p align="center"> 🤖 This is an autonomous high level whatsapp tool which executes simple tasks but aims to execute more complex tasks
     <br> 
 </p>
 
@@ -45,40 +45,24 @@ Write about 1-2 paragraphs describing the purpose of your bot.
 
 ## 💭 How it works <a name = "working"></a>
 
-The bot first extracts the word from the comment and then fetches word definitions, part of speech, example and source from the Oxford Dictionary API.
+The bot accepts user input from whatsapp whether it is text, images or voice and proceeeds to follow the instructions given by the user. The bot is able to do the following:
+- Send a message to a contact
+- Create images with text
+- Respond with voice audio
+- Understand** image inputs
 
-If the word does not exist in the Oxford Dictionary, the Oxford API then returns a 404 response upon which the bot then tries to fetch results form the Urban Dictionary API.
 
-The bot uses the Pushshift API to fetch comments, PRAW module to reply to comments and Heroku as a server.
-
-The entire bot is written in Python 3.6
+The entire bot is written in Python 3.11
 
 ## 🎈 Usage <a name = "usage"></a>
 
-To use the bot, type:
+To use the bot, message:
 
 ```
-!dict word
+ +263 779 381 988
 ```
 
-The first part, i.e. "!dict" **is not** case sensitive.
 
-The bot will then give you the Oxford Dictionary (or Urban Dictionary; if the word does not exist in the Oxford Dictionary) definition of the word as a comment reply.
-
-### Example:
-
-> !dict what is love
-
-**Definition:**
-
-Baby, dont hurt me~
-Dont hurt me~ no more.
-
-**Example:**
-
-Dude1: Bruh, what is love?
-Dude2: Baby, dont hurt me, dont hurt me- no more!
-Dude1: dafuq?
 
 **Source:** https://www.urbandictionary.com/define.php?term=what%20is%20love
 
@@ -97,7 +81,7 @@ These instructions will get you a copy of the project up and running on your loc
 What things you need to install the software and how to install them.
 
 ```
-Give examples
+Contents in requirements.txt
 ```
 
 ### Installing
