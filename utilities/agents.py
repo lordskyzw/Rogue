@@ -3,7 +3,9 @@ import time
 import logging
 import json
 from utilities.agent_tools import *
-from toolbox import oai
+from openai import OpenAI
+
+oai = OpenAI(api_key=os.environ.get("OPENAI_API_KEY")) 
 
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s")
