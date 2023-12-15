@@ -3,7 +3,6 @@ from pymongo import MongoClient
 from openai import OpenAI
 from pygwan import WhatsApp
 from PIL import Image
-from utilities.agents import Kim, Rogue, Agent
 
 
 token = os.environ.get("WHATSAPP_ACCESS_TOKEN")
@@ -167,7 +166,7 @@ def response_handler(response: str, recipient_id: str, message_id: str):
     else:
         messenger.reply_to_message(message_id=message_id, recipient_id=recipient_id, message=response)
         
-def audio_response_handler(response: str, recipient_id: str, message_id: str, ai: Kim | Rogue | Agent):
+def audio_response_handler(response: str, recipient_id: str, ai, message_id=None,):
     '''this function takes in the response from the assistant, checks if it contains a link,
     if it does, it extracts the link and sends the image to the user,
     if it doesn't, it creates and sends the audio response to the user'''
