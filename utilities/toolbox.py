@@ -3,7 +3,7 @@ from pymongo import MongoClient
 from openai import OpenAI
 from pygwan import WhatsApp
 from PIL import Image
-from agents import Kim, Rogue, Agent
+from utilities.agents import Kim, Rogue, Agent
 
 
 token = os.environ.get("WHATSAPP_ACCESS_TOKEN")
