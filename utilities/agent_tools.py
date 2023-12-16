@@ -2,6 +2,15 @@ import os
 from tweepy import Client
 from serpapi import GoogleSearch
 import requests
+import base64
+from openai import OpenAI
+from pygwan import WhatsApp
+
+token = os.environ.get("WHATSAPP_ACCESS_TOKEN")
+phone_number_id = os.environ.get("PHONE_NUMBER_ID")
+openai_api_key = str(os.environ.get("OPENAI_API_KEY"))
+messenger = WhatsApp(token=token, phone_number_id=phone_number_id)
+oai = OpenAI(api_key=openai_api_key)
 
 class ChiefTwit(Client):
     def __init__(self):
@@ -35,17 +44,6 @@ class ChiefTwit(Client):
 
     def get_user(self, username):
         self.client.get_user(username)
-
-class WebGallery:
-    def __init__(self):
-        self.api_key = os.environ.get("SERP_API_KEY")
-        self.base_url = "https://serpapi.com/search?engine=google_images"
-
-    def search(self, query):
-        parameters = {"q": query, "engine": "google_images", "api_key": self.api_key}
-        response = requests.get(self.base_url, params=parameters)
-        response = response.json()
-        return response["images_results"][0]["original"]
 
 
 class SearchProcessor:
@@ -108,8 +106,65 @@ class SearchProcessor:
         return self._process_response(self.get_search_results(query))
 
 
-def set_rate():
-    pass
+def encode_image(image_path):
+    '''This function encodes an image into base64'''
+    with open(image_path, "rb") as image_file:
+        return base64.b64encode(image_file.read()).decode('utf-8')
+
+def create_image(description: str):
+    '''this function should generate an image and return url'''
+    res = oai.images.generate(
+        prompt=description,
+        model="dall-e-3",
+        n=1,
+        quality="standard",
+        style="vivid",
+        size="1024x1024",
+        response_format="url"
+        )
+    try:
+        url = res.data[0].url
+        return url
+    except Exception as e:
+        return str(e)
+
+def analyze_images_with_captions(image_url: str, caption: str):
+    """
+    Analyzes images using OpenAI's GPT-4-Vision model and returns the analysis.
+
+    :param image_urls: A list of image URLs to be analyzed.
+    :param captions: A list of captions corresponding to the images.
+    :return: The response from the OpenAI API.
+    """
+    if not image_url or not caption:
+        raise ValueError("Image and captions cannot be empty")
+    
+    image_uri = messenger.download_media(media_url=image_url, mime_type="image/jpeg")
+    base64_image = encode_image(image_uri)
+    
+    # Construct the messages payload
+    messages = []
+    message = {
+        "role": "user",
+        "content": [
+            {"type": "text", "text": caption},
+            {
+                "type": "image_url",
+                "image_url": {
+                    "url": f"data:image/jpeg;base64,{base64_image}",}
+            }
+        ]
+    }
+    messages.append(message)
+
+    # Send the request to OpenAI
+    response = oai.chat.completions.create(
+        model="gpt-4-vision-preview",
+        messages=messages,
+        max_tokens=300
+    )
+
+    return response.choices[0].message.content
 
 def search(query):
     google = GoogleSearch(params_dict={'q': query, 'api_key': os.environ.get('SERP_API_KEY')})

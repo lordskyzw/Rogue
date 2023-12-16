@@ -1,6 +1,5 @@
 get a flowchart overview for app.py
 
 tools:
- sending of messages
+ sending of messages (create user phone books through the mongodb database which the agent can query for phone numbers. should be able to add new numbers)
  creating of flyers
- if the message is audio, we can use the tts engine
