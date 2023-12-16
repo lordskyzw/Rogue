@@ -1,8 +1,9 @@
 import os
+import uvicorn
 import openai
 from utilities.tools import recipients_database, check_id_database, add_id_to_database, save_thread_id, get_thread_id
 from admin import Rogue, Kim
-from flask import Flask, request, make_response
+from fastapi import FastAPI, Request, Response
 import logging
 from pygwan import WhatsApp
 
@@ -28,26 +29,27 @@ whitelist = [
     "263712463290"
 ]
 
-app = Flask(__name__)
+app = FastAPI()
 
 logging.basicConfig(
     level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
 )
 
+logging.info("Started FastAPI server")
+
 @app.get("/rogue")
-def verify_token():
-    if request.args.get("hub.verify_token") == VERIFY_TOKEN:
-        print("Verified webhook")
-        response = make_response(request.args.get("hub.challenge"), 200)
-        response.mimetype = "text/plain"
-        return response
+async def verify_token(hub_verify_token: str, hub_challenge: str):
+    if hub_verify_token == VERIFY_TOKEN:
+        logging.info("Verified webhook")
+        return Response(content=hub_challenge, media_type="text/plain")
     print("Webhook Verification failed")
-    return "Invalid verification token"
+    return Response(content="Invalid verification token", status_code=401)
 
 
 @app.post("/rogue")
-def hook():
-    data = request.get_json()
+async def hook(request: Request):
+    logging.info("Received webhook")
+    data = request.json()
     logging.info("Received webhook data: %s", data)
     changed_field = messenger.changed_field(data)
     if changed_field == "messages":
@@ -135,7 +137,3 @@ def hook():
                     logging.info("No new message")
         return "OK", 200
 
-
-if __name__ == "__main__":
-    app.run(debug=True, host='0.0.0.0', port=os.getenv("PORT", default=5000))
-    recipients_database.client.close()

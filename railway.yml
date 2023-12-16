@@ -1,3 +1,0 @@
-name: rogue
-framework: python
-start: python app.py
