@@ -1,7 +1,7 @@
 # Description: This is the main file for the AI SYSTEM. It handles all the incoming messages and sends them to the appropriate AI for processing.
 import openai
 from utilities.toolbox import *
-from utilities.agents import Rogue, Kim
+from utilities.agents import Rogue, Agent
 from fastapi import FastAPI, Request, Response
 import logging
 
@@ -12,6 +12,9 @@ VERIFY_TOKEN = "30cca545-3838-48b2-80a7-9e43b1ae8ce4"
 TARMICA = "263779281345"
 whitelist = [
     TARMICA,
+    "48504298321" #brianmoyo,
+    "263787902521" #skylar,
+    "263777213597" #lytie
     # "263783560007"
     # "263779293593",
     # "263771229658",
@@ -90,7 +93,7 @@ async def hook(request: Request):
                             messenger.reply_to_message(message_id=message_id, message="Sorry, an error occured. Couldnt find a thread for you.\n\nPlease show this message to Tarmica (https://wa.me/263779281345)", recipient_id=recipient)
                             logging.error(f"===============================ERROR: DATABASE OPERATION GONE WRONG LINE 94 in app.py")
                             return "OK", 200
-                        kim = Kim(thread_id=thread_id)
+                        kim = Agent(thread_id=thread_id)
                         response = kim.create_message_and_get_response(content=message)
                         response_handler(response=response, recipient_id=recipient, message_id=message_id)
                 ############################## END TEXT MESSAGE HANDLING ################################################################################
@@ -129,7 +132,7 @@ async def hook(request: Request):
                                 logging.error(f"===============================ERROR: THREAD DATABASE OPERATION GONE WRONG")
                                 messenger.reply_to_message(message_id=message_id, message="Sorry, an error occured. Couldnt find a thread for you.\n\nPlease show this message to Tarmica (https://wa.me/263779281345)", recipient_id=recipient)
                                 return "OK", 200
-                            kim = Kim(thread_id=thread_id)
+                            kim = Agent(thread_id=thread_id)
                             if is_audio_sensible_english == True:
                                 messenger.mark_as_read(message_id=message_id)
                                 reply = kim.create_message_and_get_response(content=transcript)
@@ -162,7 +165,7 @@ async def hook(request: Request):
                         if thread_id == "no thread found":
                             logging.error(f"===============================ERROR: DATABASE OPERATION GONE WRONG LINE 94 in app.py")
                             return "OK", 200
-                        kim = Kim(thread_id=thread_id)
+                        kim = Agent(thread_id=thread_id)
                         prompt = f"image_url: {image_url}\n\nCaption:{caption}\n\nDont worry about the link being a private server link, the image analysis tools has access to it."
                         response = kim.create_message_and_get_response(content=prompt)
                         logging.info("RAW RESPONSE ================================================= %s", response)
