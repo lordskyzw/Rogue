@@ -13,7 +13,7 @@ VERIFY_TOKEN = "30cca545-3838-48b2-80a7-9e43b1ae8ce4"
 TARMICA = "263779281345"
 beta = [TARMICA]
 whitelist = [
-    #TARMICA,
+    TARMICA,
     "48504298321" #brianmoyo,
     "263787902521" #skylar,
     "263777213597" #lytie

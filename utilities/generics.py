@@ -55,14 +55,15 @@ class Chipoko:
     1) create_message_and_get_response(message):
         - creates a message, retrieves history, cleans history, packages up the new message along with the history, sends to LLM and returns the response from LLM & finally updates history'''
         
-    def __init__(self, recipient):
+    def __init__(self, recipient, name):
         self.recipient = recipient
+        self.name = name
         self.history = get_recipient_chat_history(recipient)
         self.clean_history = clean_history(self.history)
         
         
     def create_message_and_get_response(self, message):
-        system_dict = {"role": "system", "content": "Your name is Winter, a borderline evil AI developed by Tarmica Chiwara as an experiment of Mistral's AI technology."}
+        system_dict = {"role": "system", "content": f"Your name is Winter, a borderline funny, honest and a bit evil AI developed by Tarmica Chiwara (Zimbabwean male computer engineering, aged 25) as an experiment of Mistral's AI technology. You are talking to {self.name}. Admit when you don't know something."}
         history_dict = extract_messages(self.clean_history)
         live_message_dict = {"role": "user", "content": message}
         all_messages = [system_dict] + history_dict + [live_message_dict]
