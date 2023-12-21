@@ -2,6 +2,7 @@
 import openai
 from utilities.toolbox import *
 from utilities.agents import Rogue, Agent
+from utilities.generics import *
 from fastapi import FastAPI, Request, Response
 import logging
 
@@ -10,8 +11,9 @@ recipients_db = recipients_database()
 
 VERIFY_TOKEN = "30cca545-3838-48b2-80a7-9e43b1ae8ce4"
 TARMICA = "263779281345"
+beta = [TARMICA]
 whitelist = [
-    TARMICA,
+    # TARMICA,
     "48504298321" #brianmoyo,
     "263787902521" #skylar,
     "263777213597" #lytie
@@ -85,7 +87,12 @@ async def hook(request: Request):
                     if recipient == TARMICA:
                         response = rogue.create_message_and_get_response(content=message)
                         logging.info("RAW RESPONSE=================================================%s", response)
-                        response_handler(response=response, recipient_id=TARMICA, message_id=message_id)    
+                        response_handler(response=response, recipient_id=TARMICA, message_id=message_id) 
+                    elif recipient in beta:
+                        ghost = Chipoko(recipient=recipient)
+                        response = ghost.create_message_and_get_response(message=message)
+                        logging.info("RAW RESPONSE=================================================%s", response)
+                        response_handler(response=response, recipient_id=recipient, message_id=message_id)
                     else:
                         #retrieve the user's thread object
                         thread_id = get_thread_id(recipient=recipient)
@@ -121,10 +128,10 @@ async def hook(request: Request):
                                 audio_response_handler(response=reply, recipient_id=TARMICA, message_id=message_id, ai=rogue)
                                 logging.info("===================================== : AUDIO RESPONSE HANDLER CALLED AND RUN SUCCESSFULLY")
                             elif is_audio_sensible_english == False:
-                                logging.info("=====================================: Laguage check returned false")
+                                logging.info("=====================================: Language check returned false")
                                 messenger.reply_to_message(message_id=message_id, message="Sorry Tarmica, I didnt quite get that, may you please be clearer?", recipient_id=TARMICA)
                             else:
-                                logging.info(f"=====================================: Laguage check returned an error {is_audio_sensible_english}")
+                                logging.info(f"=====================================: Language check returned an error {is_audio_sensible_english}")
                                 messenger.reply_to_message(message_id=message_id, message=f"In trying to determine if your english is correct or not, an error occured:{is_audio_sensible_english}", recipient_id=TARMICA)
                         else:
                             thread_id = get_thread_id(recipient=recipient)
@@ -138,10 +145,10 @@ async def hook(request: Request):
                                 reply = kim.create_message_and_get_response(content=transcript)
                                 audio_response_handler(response=reply, recipient_id=recipient, message_id=message_id, ai=kim)
                             elif is_audio_sensible_english == False:
-                                logging.info("=====================================: Laguage check returned false")
+                                logging.info("=====================================: Language check returned false")
                                 messenger.reply_to_message(message_id=message_id, message="I didnt quite get that, may you please be clearer?", recipient_id=recipient)
                             else:
-                                logging.info(f"=====================================: Laguage check returned an error {is_audio_sensible_english}")
+                                logging.info(f"=====================================: Language check returned an error {is_audio_sensible_english}")
                                 messenger.reply_to_message(message_id=message_id, message=f"In trying to determine if your english is correct or not, an error occured:{is_audio_sensible_english}", recipient_id=recipient) 
                     except Exception as e:
                         messenger.reply_to_message(message_id=message_id, message=f"error occured {e.with_traceback()}", recipient_id=recipient)           
@@ -173,6 +180,7 @@ async def hook(request: Request):
                 ############################# End Image Message Handling ###################################################################################
                 ############################# Document Message Handling ####################################################################################         
                 elif message_type == "document":
+                    messenger.mark_as_read(message_id=message_id)
                     messenger.send_message(message="I don't know how to handle documents yet, but coming soon", recipient_id=recipient)
                 ############################# End Document Message Handling ################################################################################
             else:

@@ -2,4 +2,5 @@ get a flowchart overview for app.py
 
 tools:
  sending of messages (create user phone books through the mongodb database which the agent can query for phone numbers. should be able to add new numbers)
- creating of flyers
+introducing long-form tasks
+the only free tier should use Mistral models but i donno how to build a reliable agent with this llm so far so this could work as the conversation artist
