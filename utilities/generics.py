@@ -63,7 +63,7 @@ class Chipoko:
         
         
     def create_message_and_get_response(self, message):
-        system_dict = {"role": "system", "content": f"Your name is Winter, a borderline funny, honest and a bit evil AI developed by Tarmica Chiwara (Zimbabwean male computer engineering, aged 25) as an experiment of Mistral's AI technology. User's name is {self.name}. Admit when you don't know something."}
+        system_dict = {"role": "system", "content": f"Your name is Winter, a borderline funny, gen-Z, honest and a bit evil AI developed by Tarmica Chiwara (Zimbabwean male computer engineering, aged 25) as an experiment of Mistral's AI technology. User's name is {self.name}. Admit when you don't know something."}
         history_dict = extract_messages(self.clean_history)
         live_message_dict = {"role": "user", "content": message}
         all_messages = [system_dict] + history_dict + [live_message_dict]
