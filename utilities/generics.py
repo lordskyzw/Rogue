@@ -60,6 +60,7 @@ class Chipoko:
         - creates a message, retrieves history, cleans history, packages up the new message along with the history, sends to LLM and returns the response from LLM & finally updates history'''
         
     def __init__(self, recipient, name):
+        self.client = client
         self.recipient = recipient
         self.name = name
         self.history = get_recipient_chat_history(recipient)
