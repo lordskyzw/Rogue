@@ -1,7 +1,11 @@
 import os
+from pathlib import Path
 import re
 from openai import OpenAI
 from langchain.memory import MongoDBChatMessageHistory
+import logging
+
+logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s")
 
 
 client = OpenAI(api_key=(os.environ.get("OPENROUTER_API_KEY")), base_url="https://openrouter.ai/api/v1")
@@ -75,3 +79,19 @@ class Chipoko:
         self.history.add_user_message(message)
         self.history.add_ai_message(response)
         return response
+    
+    def create_audio(self, script):
+        '''takes in a script and returns an audio file path'''
+        try:
+            speech_file_path = Path(__file__).parent / "speech.aac"
+            response = self.client.audio.speech.create(
+            model="tts-1",
+            voice="nova",
+            response_format="aac",
+            input=script
+            )
+            response.stream_to_file(speech_file_path)
+            return speech_file_path
+        except Exception as e:
+            logging.error("ERROR OCCURED======================================================================%s", e)
+            return e

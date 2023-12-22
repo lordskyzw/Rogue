@@ -133,6 +133,21 @@ async def hook(request: Request):
                             else:
                                 logging.info(f"=====================================: Language check returned an error {is_audio_sensible_english}")
                                 messenger.reply_to_message(message_id=message_id, message=f"In trying to determine if your english is correct or not, an error occured:{is_audio_sensible_english}", recipient_id=TARMICA)
+                        
+                        elif recipient in beta:
+                            ghost = Chipoko(recipient=recipient, name=name)
+                            if is_audio_sensible_english == True:
+                                messenger.mark_as_read(message_id=message_id)
+                                reply = ghost.create_message_and_get_response(content=transcript)
+                                audio_response_handler(response=reply, recipient_id=recipient, message_id=message_id, ai=ghost)
+                                logging.info("===================================== : AUDIO RESPONSE HANDLER CALLED AND RUN SUCCESSFULLY")
+                            elif is_audio_sensible_english == False:
+                                logging.info("=====================================: Language check returned false")
+                                messenger.reply_to_message(message_id=message_id, message="I didnt quite get that, may you please be clearer?", recipient_id=recipient)
+                            else:
+                                logging.info(f"=====================================: Language check returned an error {is_audio_sensible_english}")
+                                messenger.reply_to_message(message_id=message_id, message=f"In trying to determine if your english is correct or not, an error occured:{is_audio_sensible_english}", recipient_id=recipient)
+                        
                         else:
                             thread_id = get_thread_id(recipient=recipient)
                             if thread_id == "no thread found":
