@@ -11,8 +11,17 @@ recipients_db = recipients_database()
 
 VERIFY_TOKEN = "30cca545-3838-48b2-80a7-9e43b1ae8ce4"
 TARMICA = "263779281345"
-beta = [TARMICA]
-whitelist = [
+beta = [TARMICA,
+        "265982659389" #maneater
+        "263774694160", #engineernyasha
+        "263787902521", #skylar
+        "263777213597", #lytie
+        "48504298321", #brianmoyo
+        "263786913190", #shelly
+        "263716065423", #tedich
+        "263784908771", #tawana
+    ]
+whitelist = beta + [
     TARMICA,
     "48504298321" #brianmoyo,
     "263787902521" #skylar,
@@ -178,7 +187,7 @@ async def hook(request: Request):
                     messenger.mark_as_read(message_id=message_id)
                     if recipient == TARMICA:
                         # base64_image = encode_image(image_uri)
-                        prompt = f"image_url: {image_url}\n\nCaption:{caption}\n\nIf the url links to an image that seems t o be hosted on a private server, use the analyze_images_with_captions tool as it has access to it."
+                        prompt = f"image_url: {image_url}\n\nCaption:{caption}\n\nPS: If the url links to an image that seems to be hosted on a private server, use the analyze_images_with_captions tool as it has access to it."
                         response = rogue.create_message_and_get_response(content=prompt)
                         logging.info("RAW RESPONSE ================================================= %s", response)
                         response_handler(response=response, recipient_id=TARMICA, message_id=message_id)
