@@ -68,9 +68,8 @@ To use the bot, message:
 
 ---
 
-<sup>Beep boop. I am a bot. If there are any issues, contact my [Master](https://www.reddit.com/message/compose/?to=PositivePlayer1&subject=/u/Wordbook_Bot)</sup>
 
-<sup>Want to make a similar reddit bot? Check out: [GitHub](https://github.com/kylelobo/Reddit-Bot)</sup>
+<sup>Want to make a similar whatsapp bot? Check out: [GitHub](https://github.com/lordskyzw/shingai)</sup>
 
 ## 🏁 Getting Started <a name = "getting_started"></a>
 
@@ -102,11 +101,11 @@ until finished
 
 End with an example of getting some data out of the system or using it for a little demo.
 
-## 🚀 Deploying your own bot <a name = "deployment"></a>
+## 🚀 Deploying your own <a name = "deployment"></a>
 
 To see an example project on how to deploy your bot, please see my own configuration:
 
-- **Heroku**: https://github.com/kylelobo/Reddit-Bot#deploying_the_bot
+- **Railway**: https://github.com/lordskyzw/Reddit-Bot#deploying_the_bot
 
 ## ⛏️ Built Using <a name = "built_using"></a>
 
@@ -115,9 +114,9 @@ To see an example project on how to deploy your bot, please see my own configura
 
 ## ✍️ Authors <a name = "authors"></a>
 
-- [@kylelobo](https://github.com/kylelobo) - Idea & Initial work
+- [@lordskyzw](https://github.com/lordskyzw) - Idea & Initial work
 
-See also the list of [contributors](https://github.com/kylelobo/The-Documentation-Compendium/contributors) who participated in this project.
+See also the list of [contributors](https://github.com/lordskyzw/The-Documentation-Compendium/contributors) who participated in this project.
 
 ## 🎉 Acknowledgements <a name = "acknowledgement"></a>
 

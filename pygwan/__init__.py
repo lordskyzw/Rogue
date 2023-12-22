@@ -108,7 +108,7 @@ class WhatsApp(object):
         logging.error(f"Response: {r.json()}")
         return r.json()
 
-    def send_template(self, template, recipient_id, components, lang: str = "en_US"):
+    def send_template(self, template, recipient_id, lang: str = "en_US", components: List[Dict[Any, Any]] = []):
         """
         Sends a template message to a WhatsApp user, Template messages can either be;
             1. Text template

@@ -1,7 +1,8 @@
 # Description: This is the main file for the AI SYSTEM. It handles all the incoming messages and sends them to the appropriate AI for processing.
 import openai
 from utilities.toolbox import *
-from utilities.agents import Rogue, Kim
+from utilities.agents import Rogue, Agent
+from utilities.generics import *
 from fastapi import FastAPI, Request, Response
 import logging
 
@@ -10,8 +11,21 @@ recipients_db = recipients_database()
 
 VERIFY_TOKEN = "30cca545-3838-48b2-80a7-9e43b1ae8ce4"
 TARMICA = "263779281345"
-whitelist = [
+beta = [TARMICA,
+        "265982659389" #maneater
+        "263774694160", #engineernyasha
+        "263787902521", #skylar
+        "263777213597", #lytie
+        "48504298321", #brianmoyo
+        "263786913190", #shelly
+        "263716065423", #tedich
+        "263784908771", #tawana
+    ]
+whitelist = beta + [
     TARMICA,
+    "48504298321" #brianmoyo,
+    "263787902521" #skylar,
+    "263777213597" #lytie
     # "263783560007"
     # "263779293593",
     # "263771229658",
@@ -79,10 +93,15 @@ async def hook(request: Request):
                 if message_type == "text":
                     messenger.mark_as_read(message_id=message_id)
                     message = messenger.get_message(data)
-                    if recipient == TARMICA:
-                        response = rogue.create_message_and_get_response(content=message)
+                    # if recipient == TARMICA:
+                    #     response = rogue.create_message_and_get_response(content=message)
+                    #     logging.info("RAW RESPONSE=================================================%s", response)
+                    #     response_handler(response=response, recipient_id=TARMICA, message_id=message_id) 
+                    if recipient in beta:
+                        ghost = Chipoko(recipient=recipient, name=name)
+                        response = ghost.create_message_and_get_response(message=message)
                         logging.info("RAW RESPONSE=================================================%s", response)
-                        response_handler(response=response, recipient_id=TARMICA, message_id=message_id)    
+                        response_handler(response=response, recipient_id=recipient, message_id=message_id)
                     else:
                         #retrieve the user's thread object
                         thread_id = get_thread_id(recipient=recipient)
@@ -90,7 +109,7 @@ async def hook(request: Request):
                             messenger.reply_to_message(message_id=message_id, message="Sorry, an error occured. Couldnt find a thread for you.\n\nPlease show this message to Tarmica (https://wa.me/263779281345)", recipient_id=recipient)
                             logging.error(f"===============================ERROR: DATABASE OPERATION GONE WRONG LINE 94 in app.py")
                             return "OK", 200
-                        kim = Kim(thread_id=thread_id)
+                        kim = Agent(thread_id=thread_id)
                         response = kim.create_message_and_get_response(content=message)
                         response_handler(response=response, recipient_id=recipient, message_id=message_id)
                 ############################## END TEXT MESSAGE HANDLING ################################################################################
@@ -118,27 +137,42 @@ async def hook(request: Request):
                                 audio_response_handler(response=reply, recipient_id=TARMICA, message_id=message_id, ai=rogue)
                                 logging.info("===================================== : AUDIO RESPONSE HANDLER CALLED AND RUN SUCCESSFULLY")
                             elif is_audio_sensible_english == False:
-                                logging.info("=====================================: Laguage check returned false")
+                                logging.info("=====================================: Language check returned false")
                                 messenger.reply_to_message(message_id=message_id, message="Sorry Tarmica, I didnt quite get that, may you please be clearer?", recipient_id=TARMICA)
                             else:
-                                logging.info(f"=====================================: Laguage check returned an error {is_audio_sensible_english}")
+                                logging.info(f"=====================================: Language check returned an error {is_audio_sensible_english}")
                                 messenger.reply_to_message(message_id=message_id, message=f"In trying to determine if your english is correct or not, an error occured:{is_audio_sensible_english}", recipient_id=TARMICA)
+                        
+                        elif recipient in beta:
+                            ghost = Chipoko(recipient=recipient, name=name)
+                            if is_audio_sensible_english == True:
+                                messenger.mark_as_read(message_id=message_id)
+                                reply = ghost.create_message_and_get_response(message=transcript)
+                                audio_response_handler(response=reply, recipient_id=recipient, message_id=message_id, ai=ghost)
+                                logging.info("===================================== : AUDIO RESPONSE HANDLER CALLED AND RUN SUCCESSFULLY")
+                            elif is_audio_sensible_english == False:
+                                logging.info("=====================================: Language check returned false")
+                                messenger.reply_to_message(message_id=message_id, message="I didnt quite get that, may you please be clearer?", recipient_id=recipient)
+                            else:
+                                logging.info(f"=====================================: Language check returned an error {is_audio_sensible_english}")
+                                messenger.reply_to_message(message_id=message_id, message=f"In trying to determine if your english is correct or not, an error occured:{is_audio_sensible_english}", recipient_id=recipient)
+                        
                         else:
                             thread_id = get_thread_id(recipient=recipient)
                             if thread_id == "no thread found":
                                 logging.error(f"===============================ERROR: THREAD DATABASE OPERATION GONE WRONG")
                                 messenger.reply_to_message(message_id=message_id, message="Sorry, an error occured. Couldnt find a thread for you.\n\nPlease show this message to Tarmica (https://wa.me/263779281345)", recipient_id=recipient)
                                 return "OK", 200
-                            kim = Kim(thread_id=thread_id)
+                            kim = Agent(thread_id=thread_id)
                             if is_audio_sensible_english == True:
                                 messenger.mark_as_read(message_id=message_id)
                                 reply = kim.create_message_and_get_response(content=transcript)
                                 audio_response_handler(response=reply, recipient_id=recipient, message_id=message_id, ai=kim)
                             elif is_audio_sensible_english == False:
-                                logging.info("=====================================: Laguage check returned false")
+                                logging.info("=====================================: Language check returned false")
                                 messenger.reply_to_message(message_id=message_id, message="I didnt quite get that, may you please be clearer?", recipient_id=recipient)
                             else:
-                                logging.info(f"=====================================: Laguage check returned an error {is_audio_sensible_english}")
+                                logging.info(f"=====================================: Language check returned an error {is_audio_sensible_english}")
                                 messenger.reply_to_message(message_id=message_id, message=f"In trying to determine if your english is correct or not, an error occured:{is_audio_sensible_english}", recipient_id=recipient) 
                     except Exception as e:
                         messenger.reply_to_message(message_id=message_id, message=f"error occured {e.with_traceback()}", recipient_id=recipient)           
@@ -153,7 +187,7 @@ async def hook(request: Request):
                     messenger.mark_as_read(message_id=message_id)
                     if recipient == TARMICA:
                         # base64_image = encode_image(image_uri)
-                        prompt = f"image_url: {image_url}\n\nCaption:{caption}\n\nIf the url links to an image that seems t o be hosted on a private server, use the analyze_images_with_captions tool as it has access to it."
+                        prompt = f"image_url: {image_url}\n\nCaption:{caption}\n\nPS: If the url links to an image that seems to be hosted on a private server, use the analyze_images_with_captions tool as it has access to it."
                         response = rogue.create_message_and_get_response(content=prompt)
                         logging.info("RAW RESPONSE ================================================= %s", response)
                         response_handler(response=response, recipient_id=TARMICA, message_id=message_id)
@@ -162,7 +196,7 @@ async def hook(request: Request):
                         if thread_id == "no thread found":
                             logging.error(f"===============================ERROR: DATABASE OPERATION GONE WRONG LINE 94 in app.py")
                             return "OK", 200
-                        kim = Kim(thread_id=thread_id)
+                        kim = Agent(thread_id=thread_id)
                         prompt = f"image_url: {image_url}\n\nCaption:{caption}\n\nDont worry about the link being a private server link, the image analysis tools has access to it."
                         response = kim.create_message_and_get_response(content=prompt)
                         logging.info("RAW RESPONSE ================================================= %s", response)
@@ -170,6 +204,7 @@ async def hook(request: Request):
                 ############################# End Image Message Handling ###################################################################################
                 ############################# Document Message Handling ####################################################################################         
                 elif message_type == "document":
+                    messenger.mark_as_read(message_id=message_id)
                     messenger.send_message(message="I don't know how to handle documents yet, but coming soon", recipient_id=recipient)
                 ############################# End Document Message Handling ################################################################################
             else:
