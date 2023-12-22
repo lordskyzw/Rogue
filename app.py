@@ -147,7 +147,7 @@ async def hook(request: Request):
                             ghost = Chipoko(recipient=recipient, name=name)
                             if is_audio_sensible_english == True:
                                 messenger.mark_as_read(message_id=message_id)
-                                reply = ghost.create_message_and_get_response(content=transcript)
+                                reply = ghost.create_message_and_get_response(message=transcript)
                                 audio_response_handler(response=reply, recipient_id=recipient, message_id=message_id, ai=ghost)
                                 logging.info("===================================== : AUDIO RESPONSE HANDLER CALLED AND RUN SUCCESSFULLY")
                             elif is_audio_sensible_english == False:
