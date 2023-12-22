@@ -9,6 +9,7 @@ logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(name)s - %(level
 
 
 client = OpenAI(api_key=(os.environ.get("OPENROUTER_API_KEY")), base_url="https://openrouter.ai/api/v1")
+oai = OpenAI(api_key=(os.environ.get("OPENAI_API_KEY")))
 
 def get_recipient_chat_history(recipient):
     try:
@@ -60,7 +61,7 @@ class Chipoko:
         - creates a message, retrieves history, cleans history, packages up the new message along with the history, sends to LLM and returns the response from LLM & finally updates history'''
         
     def __init__(self, recipient, name):
-        self.client = client
+        self.client = oai
         self.recipient = recipient
         self.name = name
         self.history = get_recipient_chat_history(recipient)
