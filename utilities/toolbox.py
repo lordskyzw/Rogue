@@ -3,7 +3,7 @@ from pymongo import MongoClient
 from openai import OpenAI
 from pygwan import WhatsApp
 from PIL import Image
-from generics import get_recipient_chat_history
+from .generics import get_recipient_chat_history
 
 
 token = os.environ.get("WHATSAPP_ACCESS_TOKEN")
