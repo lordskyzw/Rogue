@@ -3,6 +3,7 @@ from pymongo import MongoClient
 from openai import OpenAI
 from pygwan import WhatsApp
 from PIL import Image
+from generics import get_recipient_chat_history
 
 
 token = os.environ.get("WHATSAPP_ACCESS_TOKEN")
@@ -129,6 +130,7 @@ def link_removal(response: str):
     return reply_without_links
 
 def response_handler(response: str, recipient_id: str, message_id: str):
+    history = get_recipient_chat_history(recipient=recipient_id)
     '''this function takes in the response from the assistant, checks if it contains a link,
     if it does, it extracts the link and sends the image to the user,
     if it doesn't, it sends the response to the user'''
@@ -160,16 +162,19 @@ def response_handler(response: str, recipient_id: str, message_id: str):
         except IOError as e:
             logging.error(f"==================================================== ERROR OCCURED: {e}")
             messenger.send_message(message=f"Error occured: {e}", recipient_id=recipient_id)
+            history.add_ai_message(message=f"Error occured: {e}")
         except Exception as e:
             logging.error(f"==================================================== ERROR OCCURED: {e}")
             messenger.send_message(message=f"Error occured: {e}", recipient_id=recipient_id)  
     else:
         messenger.reply_to_message(message_id=message_id, recipient_id=recipient_id, message=response)
+        history.add_ai_message(message=response)
         
 def audio_response_handler(response: str, recipient_id: str, ai, message_id=None,):
     '''this function takes in the response from the assistant, checks if it contains a link,
     if it does, it extracts the link and sends the image to the user,
     if it doesn't, it creates and sends the audio response to the user'''
+    history = get_recipient_chat_history(recipient=recipient_id)
     reply_without_links = link_removal(response=response)
     url_match = re.search(r"!\[.*?\]\((https.*?)\)", response)
     if url_match:
@@ -205,6 +210,7 @@ def audio_response_handler(response: str, recipient_id: str, ai, message_id=None
         audio = ai.create_audio(script=response)
         audio_id_dict = messenger.upload_media(media=(os.path.realpath(audio)))
         messenger.send_audio(audio=audio_id_dict["id"], recipient_id=recipient_id, link=False)
+        history.add_ai_message(message=response)
         
 
     

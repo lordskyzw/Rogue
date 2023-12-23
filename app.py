@@ -5,9 +5,11 @@ from utilities.agents import Rogue, Agent
 from utilities.generics import *
 from fastapi import FastAPI, Request, Response
 import logging
+from utilities.generics import get_recipient_chat_history
 
 rogue = Rogue()
 recipients_db = recipients_database()
+
 
 VERIFY_TOKEN = "30cca545-3838-48b2-80a7-9e43b1ae8ce4"
 TARMICA = "263779281345"
@@ -21,6 +23,7 @@ beta = [TARMICA,
         "263716065423", #tedich
         "263784908771", #tawana
         "263771229658", #tiri
+        "263786936685" #putin
     ]
 whitelist = beta + [
     TARMICA,
@@ -79,6 +82,8 @@ async def hook(request: Request):
                 if recipient not in whitelist:
                     messenger.send_template(template='heralding_rogue', recipient_id=recipient, lang='en')
                     return "OK", 200
+                
+                history = get_recipient_chat_history(recipient=recipient)
                 recipient_obj = {"id": recipient, "phone_number": recipient}
                 if recipients_db.find_one(recipient_obj) is None:
                     try:
@@ -131,6 +136,7 @@ async def hook(request: Request):
                         )
                         logging.info(f"====================================================== TRANSCRIPT: {transcript}")
                         is_audio_sensible_english = language_check(transcript=transcript)
+                        history.add_user_message(transcript)
                         if recipient == TARMICA:
                             if is_audio_sensible_english == True:
                                 messenger.mark_as_read(message_id=message_id)
@@ -186,9 +192,10 @@ async def hook(request: Request):
                     caption = messenger.extract_caption(data=data)
                     logging.info("CAPTION: =====================================================================  %s", caption)
                     messenger.mark_as_read(message_id=message_id)
+                    history.add_user_message(caption)
                     if recipient == TARMICA:
                         # base64_image = encode_image(image_uri)
-                        prompt = f"image_url: {image_url}\n\nCaption:{caption}\n\nPS: If the url links to an image that seems to be hosted on a private server, use the analyze_images_with_captions tool as it has access to it."
+                        prompt = f"image_url: {image_url}\n\nCaption:{caption}\n\nPS: even if the url links to an image that seems to be hosted on a private server, use the analyze_images_with_captions tool as it has access to it."
                         response = rogue.create_message_and_get_response(content=prompt)
                         logging.info("RAW RESPONSE ================================================= %s", response)
                         response_handler(response=response, recipient_id=TARMICA, message_id=message_id)
