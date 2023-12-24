@@ -77,7 +77,7 @@ async def hook(request: Request):
             elif not message_exists:
                 add_id_to_database(message_id)
                 if recipient not in whitelist:
-                    messenger.send_template(template='heralding_rogue', recipient_id=recipient, lang='en')
+                    messenger.reply_to_message(message_id=message_id, recipient_id=recipient, message ='Oh yeah ummm..awkward, ask Tarmica to join (wa.me/263779281345)')
                     return "OK", 200
                 recipient_obj = {"id": recipient, "phone_number": recipient}
                 if recipients_db.find_one(recipient_obj) is None:
