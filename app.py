@@ -14,7 +14,7 @@ recipients_db = recipients_database()
 VERIFY_TOKEN = "30cca545-3838-48b2-80a7-9e43b1ae8ce4"
 TARMICA = "263779281345"
 beta = [TARMICA,
-        "265982659389" #maneater
+        "265982659389", #maneater
         "263774694160", #engineernyasha
         "263787902521", #skylar
         "263777213597", #lytie
@@ -23,7 +23,8 @@ beta = [TARMICA,
         "263716065423", #tedich
         "263784908771", #tawana
         "263771229658", #tiri
-        "263786936685" #putin
+        "263786936685", #putin
+        "‪263712699365‬", #fortune
     ]
 whitelist = beta + [
     TARMICA,
@@ -80,7 +81,7 @@ async def hook(request: Request):
             elif not message_exists:
                 add_id_to_database(message_id)
                 if recipient not in whitelist:
-                    messenger.send_template(template='heralding_rogue', recipient_id=recipient, lang='en')
+                    messenger.reply_to_message(message="umm...this is awkward but you don't have access. Ask Tarmica nicely (wa.me/263779281345)", recipient_id=recipient, message_id=message_id)
                     return "OK", 200
                 
                 history = get_recipient_chat_history(recipient=recipient)
