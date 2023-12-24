@@ -24,7 +24,6 @@ beta = [TARMICA,
         "‪263712699365",‬
     ]
 whitelist = beta + [
-    TARMICA,
     "48504298321" #brianmoyo,
     "263787902521" #skylar,
     "263777213597" #lytie
