@@ -74,7 +74,7 @@ class Chipoko:
         live_message_dict = {"role": "user", "content": message}
         all_messages = [system_dict] + history_dict + [live_message_dict]
         completion = client.chat.completions.create(
-        model="google/gemini-pro",
+        model="ehartford/dolphin-2.5-mixtral-8x7b",
         messages=all_messages,
         )
         response = completion.choices[0].message.content
