@@ -25,6 +25,7 @@ beta = [TARMICA,
         "263771229658", #tiri
         "263786936685", #putin
         "‪263712699365‬", #fortune
+        "263786990464", #ripondo
     ]
 whitelist = beta + [
     TARMICA,
