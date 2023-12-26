@@ -5,13 +5,16 @@ from utilities.agents import Rogue, Agent
 from utilities.generics import *
 from fastapi import FastAPI, Request, Response
 import logging
+from utilities.generics import get_recipient_chat_history
 
 rogue = Rogue()
 recipients_db = recipients_database()
 
+
 VERIFY_TOKEN = "30cca545-3838-48b2-80a7-9e43b1ae8ce4"
 TARMICA = "263779281345"
-beta = [TARMICA,
+beta = [
+        "263784037241",# ~Ck
         "265982659389",
         "263774694160",
         "263787902521",
@@ -21,20 +24,22 @@ beta = [TARMICA,
         "263716065423",
         "263784908771",
         "263771229658",
-        "‪263712699365",‬
+        "263786936685",
+        "263712699365",
+        "263786990464",
+        "263783525762",
+        "263778923849",
+        "263788667111",
+        "263782314894",
+        "263713965702",
+        "263777859397",
+        "263786072641",
+        "263776555142",
+        "263783525762",
+        "263718178416",
+        TARMICA,
     ]
-whitelist = beta + [
-    "48504298321" #brianmoyo,
-    "263787902521" #skylar,
-    "263777213597" #lytie
-    # "263783560007"
-    # "263779293593",
-    # "263771229658",
-    # "263774882645",
-    # "263783429801",
-    # "263712933306",
-    # "263712463290"
-]
+whitelist = beta
 
 app = FastAPI()
 
@@ -77,8 +82,10 @@ async def hook(request: Request):
             elif not message_exists:
                 add_id_to_database(message_id)
                 if recipient not in whitelist:
-                    messenger.reply_to_message(message_id=message_id, recipient_id=recipient, message ='Oh yeah ummm..awkward, ask Tarmica to join (wa.me/263779281345)')
+                    messenger.reply_to_message(message="umm...this is awkward but you don't have access. Ask Tarmica nicely (wa.me/263779281345)", recipient_id=recipient, message_id=message_id)
                     return "OK", 200
+                
+                history = get_recipient_chat_history(recipient=recipient)
                 recipient_obj = {"id": recipient, "phone_number": recipient}
                 if recipients_db.find_one(recipient_obj) is None:
                     try:
@@ -131,6 +138,7 @@ async def hook(request: Request):
                         )
                         logging.info(f"====================================================== TRANSCRIPT: {transcript}")
                         is_audio_sensible_english = language_check(transcript=transcript)
+                        history.add_user_message(transcript)
                         if recipient == TARMICA:
                             if is_audio_sensible_english == True:
                                 messenger.mark_as_read(message_id=message_id)
@@ -186,9 +194,10 @@ async def hook(request: Request):
                     caption = messenger.extract_caption(data=data)
                     logging.info("CAPTION: =====================================================================  %s", caption)
                     messenger.mark_as_read(message_id=message_id)
+                    history.add_user_message(caption)
                     if recipient == TARMICA:
                         # base64_image = encode_image(image_uri)
-                        prompt = f"image_url: {image_url}\n\nCaption:{caption}\n\nPS: If the url links to an image that seems to be hosted on a private server, use the analyze_images_with_captions tool as it has access to it."
+                        prompt = f"image_url: {image_url}\n\nCaption:{caption}\n\nPS: even if the url links to an image that seems to be hosted on a private server, use the analyze_images_with_captions tool as it has access to it."
                         response = rogue.create_message_and_get_response(content=prompt)
                         logging.info("RAW RESPONSE ================================================= %s", response)
                         response_handler(response=response, recipient_id=TARMICA, message_id=message_id)
