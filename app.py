@@ -13,7 +13,7 @@ recipients_db = recipients_database()
 
 VERIFY_TOKEN = "30cca545-3838-48b2-80a7-9e43b1ae8ce4"
 TARMICA = "263779281345"
-beta = [TARMICA,
+beta = [#TARMICA,
         "265982659389", #maneater
         "263774694160", #engineernyasha
         "263787902521", #skylar
@@ -38,7 +38,7 @@ beta = [TARMICA,
         "263718178416", #Neil
     ]
 whitelist = beta + [
-    TARMICA,
+    #TARMICA,
     "48504298321" #brianmoyo,
     "263787902521" #skylar,
     "263777213597" #lytie
