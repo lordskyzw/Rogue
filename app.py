@@ -32,6 +32,7 @@ beta = [TARMICA,
         "263782314894", #jshantie
         "‪263713965702‬", #💀👻
         "‪263777859397‬", #bruce
+        "‪263786072641‬", #Tanyarr
     ]
 whitelist = beta + [
     TARMICA,
