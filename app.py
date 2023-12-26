@@ -34,6 +34,7 @@ beta = [TARMICA,
         "‪263777859397‬", #bruce
         "‪263786072641‬", #Tanyarr
         "‪263776555142‬", #CutePee
+        "‪263783525762‬", #~ashytone01〽️.zw
     ]
 whitelist = beta + [
     TARMICA,
