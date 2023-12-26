@@ -14,7 +14,7 @@ recipients_db = recipients_database()
 VERIFY_TOKEN = "30cca545-3838-48b2-80a7-9e43b1ae8ce4"
 TARMICA = "263779281345"
 beta = [
-        "263784037241" # ~Ck
+        "263784037241",# ~Ck
         "265982659389",
         "263774694160",
         "263787902521",
