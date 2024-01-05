@@ -239,8 +239,7 @@ class Rogue(Agent):
                         })
                     except Exception as e:
                         self.client.beta.threads.runs.cancel(run_id="run_TCi7Umz483eMPFzCQRumgMuA", thread_id="thread_jumec4yKfkbUQGOaLYQ4DyK4")
-                        return f"something went wrong while executing the analyze_images_with_captions function\nError: {e}"
-                    
+                        return f"something went wrong while executing the analyze_images_with_captions function\nError: {e}" 
                 else:
                     logging.info("+++++++++++++++++++++++ FUNCTION REQUIRED NOT FOUND! ++++++++++++++++++++++++")
 
