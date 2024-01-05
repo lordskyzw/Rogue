@@ -37,7 +37,7 @@ beta = [
         "263776555142",
         "263783525762",
         "263718178416",
-        TARMICA,
+        #TARMICA,
     ]
 whitelist = beta
 
@@ -101,10 +101,10 @@ async def hook(request: Request):
                 if message_type == "text":
                     messenger.mark_as_read(message_id=message_id)
                     message = messenger.get_message(data)
-                    # if recipient == TARMICA:
-                    #     response = rogue.create_message_and_get_response(content=message)
-                    #     logging.info("RAW RESPONSE=================================================%s", response)
-                    #     response_handler(response=response, recipient_id=TARMICA, message_id=message_id) 
+                    if recipient == TARMICA:
+                        response = rogue.create_message_and_get_response(content=message)
+                        logging.info("RAW RESPONSE=================================================%s", response)
+                        response_handler(response=response, recipient_id=TARMICA, message_id=message_id) 
                     if recipient in beta:
                         ghost = Chipoko(recipient=recipient, name=name)
                         response = ghost.create_message_and_get_response(message=message)
