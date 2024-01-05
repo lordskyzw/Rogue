@@ -258,6 +258,8 @@ class Rogue(Agent):
             while run_status not in ["completed", "requires_action", "failed", "cancelled", "expired"]:
                 if total_waited >= max_wait_time:
                     logging.warning("Timeout reached while waiting for the run to complete.")
+                    logging.info("+++++++++++++++++++++++ RUN STATUS ++++++++++++++++++++++++ %s", run_status)
+                    self.client.beta.threads.runs.cancel(run_id=run.id, thread_id=self.thread_id)
                     return "Request timed out."
                 else:
                     time.sleep(wait_interval)
@@ -269,6 +271,7 @@ class Rogue(Agent):
                         run_id=run.id
                     )
                     run_status = run.status
+                    
             
             messages = self.client.beta.threads.messages.list(thread_id=self.thread_id)
             assistant_messages = [msg for msg in messages.data if msg.role == "assistant"]
