@@ -207,6 +207,7 @@ class Rogue(Agent):
                             "tool_call_id": action["id"],
                             "output": output
                         })
+                        break
                     except Exception as e:
                         self.client.beta.threads.runs.cancel(run_id="run_TCi7Umz483eMPFzCQRumgMuA", thread_id="thread_jumec4yKfkbUQGOaLYQ4DyK4")
                         return f"something went wrong while executing the Tweet function\nError: {e}"
@@ -218,6 +219,7 @@ class Rogue(Agent):
                             "tool_call_id": action["id"],
                             "output": output
                         })
+                        break
                     except Exception as e:
                         self.client.beta.threads.runs.cancel(run_id="run_TCi7Umz483eMPFzCQRumgMuA", thread_id="thread_jumec4yKfkbUQGOaLYQ4DyK4")
                         return f"something went wrong while executing the Search function\nError: {e}"
@@ -228,6 +230,7 @@ class Rogue(Agent):
                             "tool_call_id": action["id"],
                             "output": output
                         })
+                        break
                     except Exception as e:
                         self.client.beta.threads.runs.cancel(run_id="run_TCi7Umz483eMPFzCQRumgMuA", thread_id="thread_jumec4yKfkbUQGOaLYQ4DyK4")
                         return f"something went wrong while executing the create_image function\nError: {e}"
@@ -238,11 +241,13 @@ class Rogue(Agent):
                             "tool_call_id": action["id"],
                             "output": output
                         })
+                        break
                     except Exception as e:
                         self.client.beta.threads.runs.cancel(run_id="run_TCi7Umz483eMPFzCQRumgMuA", thread_id="thread_jumec4yKfkbUQGOaLYQ4DyK4")
                         return f"something went wrong while executing the analyze_images_with_captions function\nError: {e}" 
                 else:
                     logging.info("+++++++++++++++++++++++ FUNCTION REQUIRED NOT FOUND! ++++++++++++++++++++++++")
+                    break
 
             self.client.beta.threads.runs.submit_tool_outputs(
                 thread_id=self.thread_id,
