@@ -105,7 +105,7 @@ async def hook(request: Request):
                         response = rogue.create_message_and_get_response(content=message)
                         logging.info("RAW RESPONSE=================================================%s", response)
                         response_handler(response=response, recipient_id=TARMICA, message_id=message_id) 
-                    if recipient in beta:
+                    if (recipient != TARMICA) and (recipient in beta):
                         ghost = Chipoko(recipient=recipient, name=name)
                         response = ghost.create_message_and_get_response(message=message)
                         logging.info("RAW RESPONSE=================================================%s", response)
