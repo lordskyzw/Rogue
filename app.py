@@ -39,7 +39,7 @@ beta = [
         "263718178416",
         #TARMICA,
     ]
-whitelist = beta
+whitelist = beta + TARMICA
 
 app = FastAPI()
 
