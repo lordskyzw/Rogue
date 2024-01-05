@@ -197,6 +197,7 @@ class Rogue(Agent):
             tools_output = []
             for action in required_actions["tool_calls"]:
                 func_name = action["function"]["name"]
+                logging.info("+++++++++++++++++++++++ FUNCTION NAME ++++++++++++++++++++++++ %s", func_name)
                 arguments = json.loads(action["function"]["arguments"])
                 if func_name == "write_tweet":
                     musk = ChiefTwit()
