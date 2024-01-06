@@ -15,6 +15,7 @@ VERIFY_TOKEN = "30cca545-3838-48b2-80a7-9e43b1ae8ce4"
 TARMICA = "263779281345"
 beta = [
         "263784037241",# ~Ck
+        "263713918382",# Simba Kasiyazi
         "265982659389",
         "263774694160",
         "263787902521",
@@ -37,9 +38,9 @@ beta = [
         "263776555142",
         "263783525762",
         "263718178416",
-        TARMICA,
+        #TARMICA,
     ]
-whitelist = beta
+whitelist = beta + [TARMICA]
 
 app = FastAPI()
 
@@ -101,11 +102,11 @@ async def hook(request: Request):
                 if message_type == "text":
                     messenger.mark_as_read(message_id=message_id)
                     message = messenger.get_message(data)
-                    # if recipient == TARMICA:
-                    #     response = rogue.create_message_and_get_response(content=message)
-                    #     logging.info("RAW RESPONSE=================================================%s", response)
-                    #     response_handler(response=response, recipient_id=TARMICA, message_id=message_id) 
-                    if recipient in beta:
+                    if recipient == TARMICA:
+                        response = rogue.create_message_and_get_response(content=message)
+                        logging.info("RAW RESPONSE=================================================%s", response)
+                        response_handler(response=response, recipient_id=TARMICA, message_id=message_id) 
+                    elif (recipient != TARMICA) and (recipient in beta):
                         ghost = Chipoko(recipient=recipient, name=name)
                         response = ghost.create_message_and_get_response(message=message)
                         logging.info("RAW RESPONSE=================================================%s", response)

@@ -197,6 +197,7 @@ class Rogue(Agent):
             tools_output = []
             for action in required_actions["tool_calls"]:
                 func_name = action["function"]["name"]
+                logging.info("+++++++++++++++++++++++ FUNCTION NAME ++++++++++++++++++++++++ %s", func_name)
                 arguments = json.loads(action["function"]["arguments"])
                 if func_name == "write_tweet":
                     musk = ChiefTwit()
@@ -206,6 +207,7 @@ class Rogue(Agent):
                             "tool_call_id": action["id"],
                             "output": output
                         })
+                        break
                     except Exception as e:
                         self.client.beta.threads.runs.cancel(run_id="run_TCi7Umz483eMPFzCQRumgMuA", thread_id="thread_jumec4yKfkbUQGOaLYQ4DyK4")
                         return f"something went wrong while executing the Tweet function\nError: {e}"
@@ -217,6 +219,7 @@ class Rogue(Agent):
                             "tool_call_id": action["id"],
                             "output": output
                         })
+                        break
                     except Exception as e:
                         self.client.beta.threads.runs.cancel(run_id="run_TCi7Umz483eMPFzCQRumgMuA", thread_id="thread_jumec4yKfkbUQGOaLYQ4DyK4")
                         return f"something went wrong while executing the Search function\nError: {e}"
@@ -227,6 +230,7 @@ class Rogue(Agent):
                             "tool_call_id": action["id"],
                             "output": output
                         })
+                        break
                     except Exception as e:
                         self.client.beta.threads.runs.cancel(run_id="run_TCi7Umz483eMPFzCQRumgMuA", thread_id="thread_jumec4yKfkbUQGOaLYQ4DyK4")
                         return f"something went wrong while executing the create_image function\nError: {e}"
@@ -237,12 +241,13 @@ class Rogue(Agent):
                             "tool_call_id": action["id"],
                             "output": output
                         })
+                        break
                     except Exception as e:
                         self.client.beta.threads.runs.cancel(run_id="run_TCi7Umz483eMPFzCQRumgMuA", thread_id="thread_jumec4yKfkbUQGOaLYQ4DyK4")
-                        return f"something went wrong while executing the analyze_images_with_captions function\nError: {e}"
-                    
+                        return f"something went wrong while executing the analyze_images_with_captions function\nError: {e}" 
                 else:
                     logging.info("+++++++++++++++++++++++ FUNCTION REQUIRED NOT FOUND! ++++++++++++++++++++++++")
+                    break
 
             self.client.beta.threads.runs.submit_tool_outputs(
                 thread_id=self.thread_id,
@@ -259,6 +264,8 @@ class Rogue(Agent):
             while run_status not in ["completed", "requires_action", "failed", "cancelled", "expired"]:
                 if total_waited >= max_wait_time:
                     logging.warning("Timeout reached while waiting for the run to complete.")
+                    logging.info("+++++++++++++++++++++++ RUN STATUS ++++++++++++++++++++++++ %s", run_status)
+                    self.client.beta.threads.runs.cancel(run_id=run.id, thread_id=self.thread_id)
                     return "Request timed out."
                 else:
                     time.sleep(wait_interval)
@@ -270,6 +277,7 @@ class Rogue(Agent):
                         run_id=run.id
                     )
                     run_status = run.status
+                    
             
             messages = self.client.beta.threads.messages.list(thread_id=self.thread_id)
             assistant_messages = [msg for msg in messages.data if msg.role == "assistant"]
