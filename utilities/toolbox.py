@@ -219,7 +219,7 @@ def save_to_phonebook(contact: dict):
         client = MongoClient(os.environ.get("MONGO_URI"))
         database = client["users"]
         collection = database["phonebook"]
-        query = {"key": contact["name"]}
+        query = {"key": contact["formatted_name"]}
         new_values = {"$set": contact}
         result = collection.update_one(query, new_values, upsert=True)
         client.close()
