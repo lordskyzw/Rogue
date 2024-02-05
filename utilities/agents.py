@@ -223,6 +223,17 @@ class Rogue(Agent):
                     except Exception as e:
                         self.client.beta.threads.runs.cancel(run_id="run_TCi7Umz483eMPFzCQRumgMuA", thread_id="thread_jumec4yKfkbUQGOaLYQ4DyK4")
                         return f"something went wrong while executing the Search function\nError: {e}"
+                elif func_name == "contact":
+                    try:
+                        output = contact(person=arguments["name"], message=arguments["message"])
+                        tools_output.append({
+                            "tool_call_id": action["id"],
+                            "output": output
+                        })
+                        break
+                    except Exception as e:
+                        self.client.beta.threads.runs.cancel(run_id="run_TCi7Umz483eMPFzCQRumgMuA", thread_id="thread_jumec4yKfkbUQGOaLYQ4DyK4")
+                        return f"something went wrong while executing the contact function\nError: {e}"
                 elif func_name == "create_image":
                     try:
                         output = create_image(arguments["description"])

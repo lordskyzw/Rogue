@@ -255,12 +255,10 @@ def get_drug_interaction(*drugs):
         
 def contact(person: str, message: str):
     '''This function should send a message to a person'''
-    '''The function should also spin up a new thread with the person or continue with their thread if it existed before'''
     contact_details = fetch_from_phonebook(person)
     try:
         messenger.send_payload_template_with_header(template_name="apollo", recipient_id=contact_details['phone_numbers'][0], header_variables=[person], payload_variables=[message])
         return "Message sent successfully"
     except Exception as e:
         return str(e)
-    #handling threading ops
     
