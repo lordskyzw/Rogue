@@ -261,7 +261,7 @@ def contact(person: str, message: str):
     '''This function should send a message to a person'''
     contact_details = str(fetch_from_phonebook(person))
     try:
-        messenger.send_payload_template_with_header(template_name="apollo", recipient_id=contact_details, header_variables=[person], payload_variables=[message])
+        messenger.send_payload_template_with_header(template_name="apollo", recipient_id=contact_details, header_variables=[person], body_variables=[message])
         logging.info("Contact details===================== %s", contact_details)
         logging.info("Person to be contacted ====================== %s", person)
         logging.info("Message to be sent ====================== %s", message)
