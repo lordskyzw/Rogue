@@ -223,6 +223,7 @@ async def hook(request: Request):
                 elif message_type == "contacts":
                     messenger.mark_as_read(message_id=message_id)
                     contact_dict = messenger.extract_contact(data)
+                    logging.info(f"CONTACT INFO: {contact_dict}")
                     if save_to_phonebook(contact_dict) == "success":
                         messenger.reply_to_message(messege_id=message_id, message="Contact saved successfully", recipient_id=recipient)
                     else:
