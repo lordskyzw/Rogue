@@ -224,7 +224,7 @@ async def hook(request: Request):
                     messenger.mark_as_read(message_id=message_id)
                     contact_dict = messenger.extract_contact(data)
                     if save_to_phonebook(contact_dict) == "success":
-                        messenger.send_message(message="Contact saved successfully", recipient_id=recipient)
+                        messenger.reply_to_message(messege_id=message_id, message="Contact saved successfully", recipient_id=recipient)
                     else:
                         messenger.send_message(message=str(save_to_phonebook(contact_dict)), recipient_id=recipient)
             else:

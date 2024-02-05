@@ -129,19 +129,21 @@ class WhatsApp(object):
                 changes = entry["changes"][0]
                 if "value" in changes:
                     value = changes["value"]
-                    if "contacts" in value and len(value["contacts"]) > 0:
-                        contact = value["contacts"][0]
-                        # Extract name and phone number from the contact
-                        profile = contact.get("profile", {})
-                        name = profile.get("name", "Unknown")
-                        phones = contact.get("phones", [])
-                        phone_numbers = [phone.get("phone", "") for phone in phones]
-                        # Store the extracted details in a dictionary
-                        extracted_contact = {
-                            "name": name,
-                            "phone_numbers": phone_numbers
-                        }
-                        return extracted_contact
+                    if "messages" in value and len(value["messages"]) > 0:
+                        messages = value["messages"]
+                        for message in messages:
+                            if "contacts" in message and len(message["contacts"]) > 0:
+                                contact = message["contacts"][0]
+                                # Extract formatted_name and wa_id from the contact
+                                name = contact.get("name", {})
+                                formatted_name = name.get("formatted_name", "Unknown")
+                                wa_id = contact.get("phones", [{}])[0].get("wa_id", "Unknown")
+                                # Store the extracted details in a dictionary
+                                extracted_contact = {
+                                    "formatted_name": formatted_name,
+                                    "wa_id": wa_id
+                                }
+                                return extracted_contact
 
         return None
     
