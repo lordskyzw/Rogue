@@ -20,7 +20,7 @@ logging.basicConfig(
 def recipients_database():
     """users' database connection object"""
     client = MongoClient(
-        "mongodb://mongo:xQxzXZEzUilnKKhrbELE@containers-us-west-114.railway.app:6200"
+        os.environ.get("MONGO_URI")
     )
     database = client["users"]
     collection = database["recipients"]
@@ -30,7 +30,7 @@ def check_id_database(message_stamp: str):
     """Check if a message_stamp(combination of conersation_id+message_id) is in the database or not."""
     # users' database connection object
     client = MongoClient(
-        "mongodb://mongo:xQxzXZEzUilnKKhrbELE@containers-us-west-114.railway.app:6200"
+        os.environ.get("MONGO_URI")
     )
     database = client["Readit"]
     collection = database["messageids"]
@@ -49,7 +49,7 @@ def add_id_to_database(message_stamp: str):
     """Add a message_stamp to the database."""
     # users' database connection object
     client = MongoClient(
-        "mongodb://mongo:xQxzXZEzUilnKKhrbELE@containers-us-west-114.railway.app:6200"
+        os.environ.get("MONGO_URI")
     )
     database = client["Readit"]
     collection = database["messageids"]
@@ -62,7 +62,7 @@ def add_id_to_database(message_stamp: str):
 def save_thread_id(thread_id : str, recipient):
     """saves a user's thread id in the MongoDB database."""
     try:
-        client = MongoClient("mongodb://mongo:xQxzXZEzUilnKKhrbELE@containers-us-west-114.railway.app:6200")
+        client = MongoClient(os.environ.get("MONGO_URI"))
         database = client["users"]
         collection = database["threads"]
         query = {"key": recipient}
@@ -80,7 +80,7 @@ def save_thread_id(thread_id : str, recipient):
 
 def get_thread_id(recipient):
     """Fetches the recipient's thread id from the MongoDB database."""
-    client = MongoClient("mongodb://mongo:xQxzXZEzUilnKKhrbELE@containers-us-west-114.railway.app:6200")
+    client = MongoClient(os.environ.get("MONGO_URI"))
     database = client["users"]
     collection = database["threads"]
     query = {"key": recipient}

@@ -14,7 +14,7 @@ oai = OpenAI(api_key=(os.environ.get("OPENAI_API_KEY")))
 def get_recipient_chat_history(recipient):
     try:
         history = MongoDBChatMessageHistory(
-            connection_string="mongodb://mongo:xQxzXZEzUilnKKhrbELE@containers-us-west-114.railway.app:6200",
+            connection_string=os.environ.get("MONGO_URI"),
             database_name="test",
             collection_name="message_store",
             session_id=str(recipient),
