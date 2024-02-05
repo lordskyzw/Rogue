@@ -220,6 +220,13 @@ async def hook(request: Request):
                     messenger.mark_as_read(message_id=message_id)
                     messenger.send_message(message="I don't know how to handle documents yet, but coming soon", recipient_id=recipient)
                 ############################# End Document Message Handling ################################################################################
+                elif message_type == "contacts":
+                    messenger.mark_as_read(message_id=message_id)
+                    contact_dict = messenger.extract_contact(data)
+                    if save_to_phonebook(contact_dict) == "success":
+                        messenger.send_message(message="Contact saved successfully", recipient_id=recipient)
+                    else:
+                        messenger.send_message(message=str(save_to_phonebook(contact_dict)), recipient_id=recipient)
             else:
                 delivery = messenger.get_delivery(data)
                 if delivery:

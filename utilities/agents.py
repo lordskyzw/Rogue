@@ -359,6 +359,26 @@ class Kim(Agent):
                     except Exception as e:
                         self.client.beta.threads.runs.cancel(run_id=(run.id), thread_id=(self.thread_id))
                         return f"something went wrong while executing the create_image function\nError: {e}"
+                elif func_name == "get_drug_info":
+                    try:
+                        output = get_drug_info(arguments["drug_name"])
+                        tools_output.append({
+                            "tool_call_id": action["id"],
+                            "output": output
+                        })
+                    except Exception as e:
+                        self.client.beta.threads.runs.cancel(run_id=(run.id), thread_id=(self.thread_id))
+                        return f"something went wrong while executing the get_drug_info function\nError: {e}"
+                elif func_name == "contact":
+                    try:
+                        output = contact(arguments["contact_name"])
+                        tools_output.append({
+                            "tool_call_id": action["id"],
+                            "output": output
+                        })
+                    except Exception as e:
+                        self.client.beta.threads.runs.cancel(run_id=(run.id), thread_id=(self.thread_id))
+                        return f"something went wrong while executing the contact function\nError: {e}"
                 elif func_name == "analyze_images_with_captions":
                     try:
                         output = analyze_images_with_captions(image_url=arguments["image_url"], caption=arguments["caption"])

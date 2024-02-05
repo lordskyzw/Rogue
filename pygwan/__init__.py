@@ -77,6 +77,7 @@ class WhatsApp(object):
         logging.error(f"Response: {r.json()}")
         return r.json()
 
+
     def reply_to_message(
         self, message_id: str, recipient_id: str, message: str, preview_url: bool = True
     ):
@@ -107,6 +108,87 @@ class WhatsApp(object):
         logging.info(f"Status code: {r.status_code}")
         logging.error(f"Response: {r.json()}")
         return r.json()
+    
+    def extract_contact(self, data: Dict[Any, Any]) -> Union[Dict[Any, Any], None]:
+        """
+        Extracts the contact from the data received from the webhook.
+
+        Args:
+            data[dict]: The data received from the webhook
+        Returns:
+            dict: The contact of the sender
+        Example:
+            >>> from whatsapp import WhatsApp
+            >>> whatsapp = WhatsApp(token, phone_number_id)
+            >>> contact = whatsapp.extract_contact(data)
+        """
+        # Check if the 'contacts' key exists in the data
+        if "entry" in data and len(data["entry"]) > 0:
+            entry = data["entry"][0]
+            if "changes" in entry and len(entry["changes"]) > 0:
+                changes = entry["changes"][0]
+                if "value" in changes:
+                    value = changes["value"]
+                    if "contacts" in value and len(value["contacts"]) > 0:
+                        contact = value["contacts"][0]
+                        # Extract name and phone number from the contact
+                        profile = contact.get("profile", {})
+                        name = profile.get("name", "Unknown")
+                        phones = contact.get("phones", [])
+                        phone_numbers = [phone.get("phone", "") for phone in phones]
+                        # Store the extracted details in a dictionary
+                        extracted_contact = {
+                            "name": name,
+                            "phone_numbers": phone_numbers
+                        }
+                        return extracted_contact
+
+        return None
+    
+    
+    def send_payload_template_with_header(self, template_name, recipient_id, header_variables, body_variables, lang="en_GB"):
+        """
+        Sends a template message with dynamic variables.
+
+        Args:
+            template_name (str): The name of the template
+            recipient_id (str): The recipient's phone number
+            header_variables (list of str): Header Variables to replace placeholders in the template
+            body_variables (list of str): Body Variables to replace placeholders in the template
+            lang (str): Language of the template. Defaults to 'en_GB'.
+        """
+        # Ensure variables are in the correct format, which is a list of dictionaries
+        # Each dictionary should have the key 'type' set to 'text' and the key 'text' set to the variable
+        header_parameters = [{"type": "text", "text": str(variable)} for variable in header_variables]
+        body_parameters = [{"type": "text", "text": str(variable)} for variable in body_variables]
+
+        data = {
+            "messaging_product": "whatsapp",
+            "to": recipient_id,
+            "type": "template",
+            "template": {
+                "name": template_name,
+                "language": {"code": lang},
+                "components": [
+                    {
+                       "type": "header",
+                       "parameters": header_parameters
+                    },
+                    {
+                        "type": "body",
+                        "parameters": body_parameters
+                    }
+                ]
+            },
+        }
+        response = requests.post(self.url, headers=self.headers, json=data)
+        if response.status_code == 200:
+            logging.info(f"Template message sent to {recipient_id}")
+        else:
+            logging.error(f"Failed to send template message: {response.json()}")
+        return response
+
+
 
     def send_template(self, template, recipient_id, lang: str = "en_US", components: List[Dict[Any, Any]] = []):
         """
