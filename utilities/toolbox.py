@@ -240,6 +240,6 @@ def fetch_from_phonebook(name: str):
     result = collection.find_one(query)
     if result:
         logging.info("===================================FETCHED CONTACT: %s", result)
-        return result
+        return result['wa_id']
     else:
         return "no contact found" # Or a default rate if not found
