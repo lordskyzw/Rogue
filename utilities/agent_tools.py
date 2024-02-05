@@ -6,6 +6,7 @@ import base64
 from openai import OpenAI
 from pygwan import WhatsApp
 from utilities.toolbox import fetch_from_phonebook
+import logging
 
 
 token = os.environ.get("WHATSAPP_ACCESS_TOKEN")
@@ -13,6 +14,7 @@ phone_number_id = os.environ.get("PHONE_NUMBER_ID")
 openai_api_key = str(os.environ.get("OPENAI_API_KEY"))
 messenger = WhatsApp(token=token, phone_number_id=phone_number_id)
 oai = OpenAI(api_key=openai_api_key)
+logging.basicConfig(level=logging.INFO)
 
 class ChiefTwit(Client):
     def __init__(self):
@@ -256,6 +258,8 @@ def get_drug_interaction(*drugs):
 def contact(person: str, message: str):
     '''This function should send a message to a person'''
     contact_details = fetch_from_phonebook(person)
+    logging.info("Contact detail sent===============================: ", contact_details)
+    logging.info("Message attempting to be sent===============================: ", message)
     try:
         messenger.send_payload_template_with_header(template_name="apollo", recipient_id=contact_details, header_variables=[person], payload_variables=[message])
         return "Message sent successfully"
