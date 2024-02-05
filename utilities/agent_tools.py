@@ -5,7 +5,7 @@ import requests
 import base64
 from openai import OpenAI
 from pygwan import WhatsApp
-from toolbox import fetch_from_phonebook
+from utilities.toolbox import fetch_from_phonebook
 
 
 token = os.environ.get("WHATSAPP_ACCESS_TOKEN")
