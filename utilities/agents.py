@@ -230,6 +230,7 @@ class Rogue(Agent):
                             "tool_call_id": action["id"],
                             "output": output
                         })
+                        logging.info("+++++++++++++++++++++++ CONTACT FUNC OUTPUT ++++++++++++++++++++++++ %s", output)
                         break
                     except Exception as e:
                         self.client.beta.threads.runs.cancel(run_id="run_TCi7Umz483eMPFzCQRumgMuA", thread_id="thread_jumec4yKfkbUQGOaLYQ4DyK4")

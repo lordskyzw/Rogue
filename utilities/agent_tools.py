@@ -260,12 +260,13 @@ def get_drug_interaction(*drugs):
 def contact(person: str, message: str):
     '''This function should send a message to a person'''
     contact_details = str(fetch_from_phonebook(person))
-    logging.info("Contact details===================== %s", contact_details)
-
-    logging.info("Contact details===================== %s", contact_details)
     try:
         messenger.send_payload_template_with_header(template_name="apollo", recipient_id=contact_details, header_variables=[person], payload_variables=[message])
+        logging.info("Contact details===================== %s", contact_details)
+        logging.info("Person to be contacted ====================== %s", person)
+        logging.info("Message to be sent ====================== %s", message)
         return "Message sent successfully"
     except Exception as e:
+        logging.error("Error sending message: %s", e)
         return str(e)
     
