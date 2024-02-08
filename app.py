@@ -16,6 +16,8 @@ TARMICA = "263779281345"
 beta = [
         "263784037241",# ~Ck
         "263713918382",# Simba Kasiyazi
+        "263773807203", #Sibu
+        "263786597053", #Allison
         "265982659389",
         "263774694160",
         "263787902521",
@@ -218,6 +220,14 @@ async def hook(request: Request):
                     messenger.mark_as_read(message_id=message_id)
                     messenger.send_message(message="I don't know how to handle documents yet, but coming soon", recipient_id=recipient)
                 ############################# End Document Message Handling ################################################################################
+                elif message_type == "contacts":
+                    messenger.mark_as_read(message_id=message_id)
+                    contact_dict = messenger.extract_contact(data)
+                    logging.info(f"CONTACT INFO: {contact_dict}")
+                    if save_to_phonebook(contact_dict) == "success":
+                        messenger.reply_to_message(message_id=message_id, message="Contact saved successfully", recipient_id=recipient)
+                    else:
+                        messenger.reply_to_message(message_id=message_id, message=str(save_to_phonebook(contact_dict)), recipient_id=recipient)
             else:
                 delivery = messenger.get_delivery(data)
                 if delivery:

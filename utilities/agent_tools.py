@@ -5,12 +5,18 @@ import requests
 import base64
 from openai import OpenAI
 from pygwan import WhatsApp
+from utilities.toolbox import fetch_from_phonebook
+import logging
+
 
 token = os.environ.get("WHATSAPP_ACCESS_TOKEN")
 phone_number_id = os.environ.get("PHONE_NUMBER_ID")
 openai_api_key = str(os.environ.get("OPENAI_API_KEY"))
 messenger = WhatsApp(token=token, phone_number_id=phone_number_id)
 oai = OpenAI(api_key=openai_api_key)
+logging.basicConfig(
+    level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+)
 
 class ChiefTwit(Client):
     def __init__(self):
@@ -170,3 +176,97 @@ def search(query):
     google = GoogleSearch(params_dict={'q': query, 'api_key': os.environ.get('SERP_API_KEY')})
     results = google.get_results()
     return results
+
+def get_drug_info(drug: str):
+    '''This function should check for drug interactions between two drugs'''
+    base_url = "https://www.britelink.io/api/v1/drug_names"
+    headers = {"Authorization": f"Bearer {os.environ.get('BRITELINK_API_KEY')}"}
+    params =  {"q": drug,
+               "f": True}
+    response = requests.get(base_url, headers=headers, params=params)
+    if response.status_code == 200:
+        # Parse the JSON response
+        data = response.json()
+        # Return the first element of the list (assuming there's only one result)
+        if data:
+            return data[0]
+        else:
+            return None
+    else:
+        # Handle errors gracefully
+
+        return str(response.status_code)
+    
+def get_drug_interaction(*drugs):
+    '''This function checks for drug interactions between two or more drugs'''
+    # Base URL for the drug interactions API endpoint
+    base_url = "https://www.britelink.io/api/v1/ddi"
+
+    # Authorization header with API key
+    headers = {
+        "Authorization": f"Bearer {os.environ.get('BRITELINK_API_KEY')}"
+    }
+    drug_ids = []
+    for drug in drugs:
+        # Get drug information
+        drug_info = get_drug_info(drug)
+        if not drug_info:
+            return f"Failed to retrieve drug information for {drug}"
+
+        # Add the drug ID to the list
+        drug_ids.append(drug_info["id"])
+    # Parameters for the request
+    drug_ids_str = ','.join(drug_ids)
+    params = {
+        "drug_Ids": ','.join(drug_ids_str)  # Convert drugs to a comma-separated string
+    }
+
+    try:
+        # Make the HTTP GET request
+        response = requests.get(base_url, headers=headers, params=params)
+        response.raise_for_status()  # Raise an exception for any HTTP errors
+
+        # Parse the JSON response
+        data = response.json()
+
+        # Extract drug interaction details
+        interactions = data.get("interactions", [])
+        if interactions:
+            interaction_details = []
+            for interaction in interactions:
+                ingredient = interaction.get("ingredient", {}).get("name", "Unknown")
+                affected_ingredients = [affected.get("name", "Unknown") for affected in interaction.get("affected_ingredient", [])]
+                description = interaction.get("description", "No description available")
+                severity = interaction.get("severity", "Unknown")
+                management = interaction.get("management", "No management information available")
+
+                interaction_details.append({
+                    "Ingredient": ingredient,
+                    "Affected Ingredients": affected_ingredients,
+                    "Description": description,
+                    "Severity": severity,
+                    "Management": management
+                })
+
+            return interaction_details
+        else:
+            return "No drug interactions found."
+
+
+    except requests.exceptions.RequestException as e:
+        # Handle HTTP request errors
+        return f"HTTP Request Error: {e}"
+        
+def contact(person: str, message: str):
+    '''This function should send a message to a person'''
+    contact_details = str(fetch_from_phonebook(person))
+    try:
+        messenger.send_payload_template_with_header(template_name="apollo", recipient_id=contact_details, header_variables=[person], body_variables=[message])
+        logging.info("Contact details===================== %s", contact_details)
+        logging.info("Person to be contacted ====================== %s", person)
+        logging.info("Message to be sent ====================== %s", message)
+        return "Message sent successfully"
+    except Exception as e:
+        logging.error("Error sending message: %s", e)
+        return str(e)
+    
