@@ -40,7 +40,7 @@ beta = [
         "263776555142",
         "263783525762",
         "263718178416",
-        #TARMICA,
+        "263777150345", #cyprianaaron
     ]
 whitelist = beta + [TARMICA]
 

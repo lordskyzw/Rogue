@@ -12,3 +12,4 @@ tweepy
 pillow
 uvicorn>=0.13.0
 langchain
+langchain-mongodb

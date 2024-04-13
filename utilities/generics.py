@@ -2,7 +2,7 @@ import os
 from pathlib import Path
 import re
 from openai import OpenAI
-from langchain.memory import MongoDBChatMessageHistory
+from langchain_mongodb.chat_message_histories import MongoDBChatMessageHistory
 import logging
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s")
