@@ -37,7 +37,7 @@ class ChiefTwit(Client):
         if response.errors == []:
             return "Successful" 
         else:
-            return "Something went wrong"
+            return f"the following went wrong: {[i for i in response.errors]}"
 
     def get_tweets(self, username):
         self.client.get_user(username)
