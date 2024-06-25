@@ -61,7 +61,7 @@ class Chipoko:
         - creates a message, retrieves history, cleans history, packages up the new message along with the history, sends to LLM and returns the response from LLM & finally updates history'''
         
     def __init__(self, recipient, name):
-        self.client = oai
+        self.client = client
         self.recipient = recipient
         self.name = name
         self.history = get_recipient_chat_history(recipient)
@@ -74,7 +74,7 @@ class Chipoko:
         live_message_dict = {"role": "user", "content": message}
         all_messages = [system_dict] + history_dict + [live_message_dict]
         completion = client.chat.completions.create(
-        model="mistralai/mistral-7b-instruct",
+        model="huggingfaceh4/zephyr-7b-beta:free",
         messages=all_messages,
         )
         response = completion.choices[0].message.content
