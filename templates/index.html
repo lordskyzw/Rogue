@@ -822,7 +822,59 @@
         </p>
         </div>
 
-
+        <script>
+            //social login buttons visibility
+            function update_social_buttons(config) {
+                let providers = document.getElementsByClassName('provider');
+                let hiddenCount = 0;
+                for(const providerBtn of providers){
+                    hiddenCount += update_button(providerBtn, config);
+                }
+                update_separator(hiddenCount < providers.length);
+            }
+            
+            function update_button (btn, config) {
+                let provider_name = btn.id.split('_')[1];
+                if (provider_name == 'facebook') {
+                    provider_name = 'fb'; // coming like this from config.
+                }
+                if (config[`social_login_${provider_name}`]) {
+                    btn.classList.remove('provider_hidden');
+                    return 0;
+                }
+                btn.classList.add('provider_hidden');
+                return 1;
+            }
+        </script>
+        <script>
+         window.local_config = {
+             "marketing_growthbook": true,
+             "social_login_apple": true,
+             "social_login_fb": true,
+             "social_login_google": true,
+             "tracking_GTM": true,
+             "tracking_datadog": true
+         };
+        </script>
+        <script type="module">
+            let fallbackTimeout = setTimeout(() => update_social_buttons(window.local_config), 2000);
+            
+            import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js';
+            import {getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-database.js";
+            const firebaseConfig = {
+                databaseURL: 'https://app-config-prod.firebaseio.com'
+            }
+            const app = initializeApp(firebaseConfig,'oauthConfig');
+            const db = getDatabase(app);
+            const oauthRef = ref(db, 'remote_config/oauth');
+            onValue(oauthRef, (snapshot) => {
+                clearTimeout(fallbackTimeout);
+                const data = snapshot.val();
+                update_social_buttons(data);
+            },
+            (error) => console.log(error)
+            );
+        </script>
         
             
 

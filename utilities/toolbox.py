@@ -7,6 +7,7 @@ from .generics import get_recipient_chat_history
 
 
 token = os.environ.get("WHATSAPP_ACCESS_TOKEN")
+DON_API_KEY = os.environ.get("DON_API_KEY")
 phone_number_id = os.environ.get("PHONE_NUMBER_ID")
 openai_api_key = str(os.environ.get("OPENAI_API_KEY"))
 messenger = WhatsApp(token=token, phone_number_id=phone_number_id)
@@ -25,6 +26,32 @@ def recipients_database():
     database = client["users"]
     collection = database["recipients"]
     return collection
+
+def check_number_of_texts_left():
+    '''this function checks the number of texts a users api key are left with'''
+    client = MongoClient(os.environ.get("MONGO_URI"))
+    database = client['chromastone']
+    collection = database['apikeys']
+    result = collection.find_one({"api_key": DON_API_KEY})
+    if result:
+        return result['messages_left']
+    else:
+        logging.error("=================================== API KEY NOT FOUND")
+
+def deduct_text():
+    '''this function deducts a text from the user's api key'''
+    client = MongoClient(os.environ.get("MONGO_URI"))
+    database = client['chromastone']
+    collection = database['apikeys']
+    result = collection.find_one({"api_key": DON_API_KEY})
+    if result:
+        new_value = result['messages_left'] - 1
+        collection.update_one({"api_key": DON_API_KEY}, {"$set": {"messages_left": DON_API_KEY}})
+        return new_value
+    else:
+        logging.error("=================================== API KEY NOT FOUND")
+        return "failed"
+
 
 def check_id_database(message_stamp: str):
     """Check if a message_stamp(combination of conersation_id+message_id) is in the database or not."""

