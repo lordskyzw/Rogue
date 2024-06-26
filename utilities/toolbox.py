@@ -46,7 +46,7 @@ def deduct_text():
     result = collection.find_one({"api_key": DON_API_KEY})
     if result:
         new_value = result['messages_left'] - 1
-        collection.update_one({"api_key": DON_API_KEY}, {"$set": {"messages_left": DON_API_KEY}})
+        collection.update_one({"api_key": DON_API_KEY}, {"$set": {"messages_left": new_value}})
         return new_value
     else:
         logging.error("=================================== API KEY NOT FOUND")

