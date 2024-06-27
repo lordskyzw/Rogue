@@ -69,7 +69,7 @@ logging.basicConfig(
 
 @app.get("/")
 async def welcome():
-    html_file_path = os.path.join(os.path.dirname(__file__), "templates", "index.html")
+    html_file_path = os.path.join(os.path.dirname(__file__), "templates", "cover.html")
     # Read the content of the HTML file
     with open(html_file_path, "r") as file:
         html_content = file.read()

