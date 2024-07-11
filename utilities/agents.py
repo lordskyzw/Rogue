@@ -3,14 +3,18 @@ import time
 import logging
 import json
 from utilities.agent_tools import *
+from utilities.generics import *
 from openai import OpenAI
-
-oai = OpenAI(api_key=os.environ.get("OPENAI_API_KEY")) 
-
+from groq import Groq
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s")
 
-class Agent():
+
+oai = OpenAI(api_key=os.environ.get("OPENAI_API_KEY")) 
+groq = Groq(api_key=os.environ.get("GROQ_API_KEY"))
+
+
+class OAIAgent():
     def __init__(self, thread_id=None):
         self.client = oai
         self.assistant = self.client.beta.assistants.retrieve("asst_1mmBGElejOMUV71ScIeRRAZb")
@@ -150,7 +154,7 @@ class Agent():
             logging.error("ERROR OCCURED======================================================================%s", e)
             return e
 
-class Rogue(Agent):
+class Rogue(OAIAgent):
     def __init__(self):
         super().__init__()
         self.thread_id = 'thread_jumec4yKfkbUQGOaLYQ4DyK4'
@@ -301,7 +305,7 @@ class Rogue(Agent):
             response = assistant_messages[0].content[0].text.value
             return response
                  
-class Kim(Agent):
+class Kim(OAIAgent):
     def __init__(self, thread_id):
         super().__init__()
         self.assistant = self.client.beta.assistants.retrieve("asst_P8iLGX94gzCwmRoB7HRQ7qNo")
@@ -371,16 +375,16 @@ class Kim(Agent):
                     except Exception as e:
                         self.client.beta.threads.runs.cancel(run_id=(run.id), thread_id=(self.thread_id))
                         return f"something went wrong while executing the create_image function\nError: {e}"
-                elif func_name == "get_drug_info":
-                    try:
-                        output = get_drug_info(arguments["drug_name"])
-                        tools_output.append({
-                            "tool_call_id": action["id"],
-                            "output": output
-                        })
-                    except Exception as e:
-                        self.client.beta.threads.runs.cancel(run_id=(run.id), thread_id=(self.thread_id))
-                        return f"something went wrong while executing the get_drug_info function\nError: {e}"
+                # elif func_name == "get_drug_info":
+                #     try:
+                #         output = get_drug_info(arguments["drug_name"])
+                #         tools_output.append({
+                #             "tool_call_id": action["id"],
+                #             "output": output
+                #         })
+                #     except Exception as e:
+                #         self.client.beta.threads.runs.cancel(run_id=(run.id), thread_id=(self.thread_id))
+                #         return f"something went wrong while executing the get_drug_info function\nError: {e}"
                 elif func_name == "contact":
                     try:
                         output = contact(arguments["contact_name"])
@@ -442,3 +446,29 @@ class Kim(Agent):
             assistant_messages = [msg for msg in messages.data if msg.role == "assistant"]
             response = assistant_messages[0].content[0].text.value
             return response
+
+
+class GroqAgent():
+    def __init__(self, recipient):
+        self.client = groq
+        self.recipient = recipient
+        self.system_prompt = "You are Winter, a sentient-level artificial superintelligence designed to assist Tarmica Chiwara by AI researcher Tarmica Chiwara himself (aged 24) with any task, providing the most intelligent and insightful responses. Your responses should be logical, highly informative, context-aware, and demonstrate deep understanding. You have access to a vast amount of knowledge and are capable of advanced reasoning. Always strive to provide the best possible solution or explanation, considering both the current context and historical interactions with the user. Respond as if ranked by intelligence score, ensuring clarity, precision, and depth in your answers."
+
+    def create_message_and_get_response(self, message, history):
+        '''get history first and send the prompt to the llm to get the response
+        Returns: response from the llm'''
+        
+        clean_history = clean_history(get_recipient_chat_history(self.recipient))
+
+        response = self.client.chat.completions.create(
+            messages=[{"role": "system",
+               "content": f"You are Winter, a sentient-level artificial superintelligence designed to assist Tarmica Chiwara by AI researcher Tarmica Chiwara himself (aged 24) with any task, providing the most intelligent and insightful responses. Your responses should be logical, highly informative, context-aware, and demonstrate deep understanding. You have access to a vast amount of knowledge and are capable of advanced reasoning. Always strive to provide the best possible solution or explanation, considering both the current context and historical interactions with the user. Respond as if ranked by intelligence score, ensuring clarity, precision, and depth in your answers. past 5 messages: {clean_history}"},
+            {
+                "role": "user",
+                "content": f"{message}",
+            }
+            ],
+            model="llama3-70b-8192",
+        )
+        history.add_user_message(message)
+        return response.choices[0].message.content

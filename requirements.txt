@@ -3,6 +3,7 @@ hypercorn==0.14.4
 uvicorn>=0.13.0
 openai>=1.2
 pymongo
+groq
 google-search-results
 colorama==0.4.4
 requests>=2.31.0
@@ -13,3 +14,4 @@ pillow
 uvicorn>=0.13.0
 langchain
 langchain-mongodb
+python-dotenv

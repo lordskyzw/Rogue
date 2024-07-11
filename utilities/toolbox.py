@@ -1,9 +1,30 @@
 import os, logging, uuid, requests, re, base64
+from langchain_mongodb.chat_message_histories import MongoDBChatMessageHistory
 from pymongo import MongoClient
 from openai import OpenAI
 from pygwan import WhatsApp
 from PIL import Image
 from .generics import get_recipient_chat_history
+
+__all__ = [
+'recipients_database',
+'check_number_of_texts_left',
+'deduct_text',
+'new_credentials',
+'save_credentials',
+'check_id_database',
+'add_id_to_database',
+'save_thread_id',
+'get_thread_id',
+'language_check',
+'encode_image',
+'link_removal',
+'response_handler',
+'audio_response_handler',
+'save_to_phonebook',
+'messenger',
+]
+
 
 
 token = os.environ.get("WHATSAPP_ACCESS_TOKEN")
@@ -17,18 +38,19 @@ logging.basicConfig(
     level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
 )
 
-######################################## users database functions ########################################
+
+######################################## winter database functions ########################################
 def recipients_database():
-    """users' database connection object"""
+    """winter' database connection object"""
     client = MongoClient(
         os.environ.get("MONGO_URI")
     )
-    database = client["users"]
+    database = client["winter"]
     collection = database["recipients"]
     return collection
 
 def check_number_of_texts_left():
-    '''this function checks the number of texts a users api key are left with'''
+    '''this function checks the number of texts a winter api key are left with'''
     client = MongoClient(os.environ.get("MONGO_URI"))
     database = client['chromastone']
     collection = database['apikeys']
@@ -52,14 +74,35 @@ def deduct_text():
         logging.error("=================================== API KEY NOT FOUND")
         return "failed"
 
+def new_credentials(email, password) -> bool:
+    '''this function checks if the email and password are new or not'''
+    client = MongoClient(os.environ.get("MONGO_URI"))
+    database = client['chromastone']
+    collection = database['credentials']
+    result = collection.find_one({"email": email, "password": password})
+    if result:
+        return False
+    else:
+        return True
+    
+def save_credentials(email, password) -> bool:
+    '''this function saves the email and password in the database'''
+    client = MongoClient(os.environ.get("MONGO_URI"))
+    database = client['chromastone']
+    collection = database['credentials']
+    result = collection.insert_one({"email": email, "password": password})
+    if result:
+        return True
+    else:
+        return False
 
 def check_id_database(message_stamp: str):
     """Check if a message_stamp(combination of conersation_id+message_id) is in the database or not."""
-    # users' database connection object
+    # winter' database connection object
     client = MongoClient(
         os.environ.get("MONGO_URI")
     )
-    database = client["Readit"]
+    database = client["winter"]
     collection = database["messageids"]
 
     # Query the collection to check if the message_id exists
@@ -74,11 +117,11 @@ def check_id_database(message_stamp: str):
 
 def add_id_to_database(message_stamp: str):
     """Add a message_stamp to the database."""
-    # users' database connection object
+    # winter' database connection object
     client = MongoClient(
         os.environ.get("MONGO_URI")
     )
-    database = client["Readit"]
+    database = client["winter"]
     collection = database["messageids"]
     document = {"message_stamp": message_stamp}
     collection.insert_one(document)
@@ -90,7 +133,7 @@ def save_thread_id(thread_id : str, recipient):
     """saves a user's thread id in the MongoDB database."""
     try:
         client = MongoClient(os.environ.get("MONGO_URI"))
-        database = client["users"]
+        database = client["winter"]
         collection = database["threads"]
         query = {"key": recipient}
         new_values = {"$set": {"thread_id": thread_id}}
@@ -108,7 +151,7 @@ def save_thread_id(thread_id : str, recipient):
 def get_thread_id(recipient):
     """Fetches the recipient's thread id from the MongoDB database."""
     client = MongoClient(os.environ.get("MONGO_URI"))
-    database = client["users"]
+    database = client["winter"]
     collection = database["threads"]
     query = {"key": recipient}
     result = collection.find_one(query)
@@ -194,7 +237,8 @@ def response_handler(response: str, recipient_id: str, message_id: str):
             logging.error(f"==================================================== ERROR OCCURED: {e}")
             messenger.send_message(message=f"Error occured: {e}", recipient_id=recipient_id)  
     else:
-        messenger.reply_to_message(message_id=message_id, recipient_id=recipient_id, message=response)
+        ## this should actually handle tool calls as well
+        messenger.reply_to_message(recipient_id=recipient_id, message=response, message_id=message_id)
         history.add_ai_message(message=response)
         
 def audio_response_handler(response: str, recipient_id: str, ai, message_id=None,):
@@ -244,7 +288,7 @@ def save_to_phonebook(contact: dict):
     """saves a user's contact in the MongoDB database."""
     try:
         client = MongoClient(os.environ.get("MONGO_URI"))
-        database = client["users"]
+        database = client["winter"]
         collection = database["phonebook"]
         query = {"key": contact["formatted_name"]}
         new_values = {"$set": contact}
@@ -261,7 +305,7 @@ def save_to_phonebook(contact: dict):
 def fetch_from_phonebook(name: str):
     """Fetches a user's contact from the MongoDB database."""
     client = MongoClient(os.environ.get("MONGO_URI"))
-    database = client["users"]
+    database = client["winter"]
     collection = database["phonebook"]
     query = {"key": name}
     result = collection.find_one(query)

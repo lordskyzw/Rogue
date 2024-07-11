@@ -5,26 +5,45 @@ from openai import OpenAI
 from langchain_mongodb.chat_message_histories import MongoDBChatMessageHistory
 import logging
 
+
+
+
+
 logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s")
+
+__all__= ["Chipoko",
+         "get_recipient_chat_history",
+         "clean_history",
+         "extract_messages",
+         "client",
+         "oai"
+        ]
 
 
 client = OpenAI(api_key=(os.environ.get("OPENROUTER_API_KEY")), base_url="https://openrouter.ai/api/v1")
 oai = OpenAI(api_key=(os.environ.get("OPENAI_API_KEY")))
 
+
+
 def get_recipient_chat_history(recipient):
+    """returns history object for a given recipient with functions like:
+    - history = get_recipient_chat_history(recipient)
+    - history.add_user_message(message), history.add_ai_message(message), 
+    NB: history.messages returns a list of messages"""
     try:
         history = MongoDBChatMessageHistory(
             connection_string=os.environ.get("MONGO_URI"),
-            database_name="test",
+            database_name="winter",
             collection_name="message_store",
             session_id=str(recipient),
         )
+        history.messages
         return history
 
     except Exception as e:
         return str(e)
 
-def clean_history(history):
+def clean_history(history: MongoDBChatMessageHistory | str)-> MongoDBChatMessageHistory | str:
     """does string operations to clean the history therefore reducing the size of the prompt sent to the llm"""
     clean_history = str(history.messages[-5:]).replace(
         ", additional_kwargs={}, example=False", ""
