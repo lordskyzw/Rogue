@@ -112,17 +112,15 @@ To see an example project on how to deploy your bot, please see my own configura
 
 ## ⛏️ Built Using <a name = "built_using"></a>
 
-- [PRAW](https://praw.readthedocs.io/en/latest/) - Python Reddit API Wrapper
+- [pygwan](https://github.com/lordskyzw/pygwan) - Python whatsapp API Wrapper
 - [Heroku](https://www.heroku.com/) - SaaS hosting platform
 
 ## ✍️ Authors <a name = "authors"></a>
 
 - [@lordskyzw](https://github.com/lordskyzw) - Idea & Initial work
 
-See also the list of [contributors](https://github.com/lordskyzw/The-Documentation-Compendium/contributors) who participated in this project.
 
 ## 🎉 Acknowledgements <a name = "acknowledgement"></a>
 
 - Hat tip to anyone whose code was used
-- Inspiration
-- References
+
