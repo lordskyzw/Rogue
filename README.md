@@ -9,7 +9,8 @@
 
 [![Status](https://img.shields.io/badge/status-active-success.svg)]()
 [![Platform](https://img.shields.io/badge/platform-twitter-green.svg)](https://www.twitter.com/user/Wordbook_Bot)
-[![GitHub Issues](https://img.shields.io/github/issues/lordskyzw/The-Documentation-Compendium.svg)]
+[![GitHub Issues](https://img.shields.io/github/issues/kylelobo/The-Documentation-Compendium.svg)]
+(https://github.com/lordskyzw/rogue/issues)
 [![GitHub Pull Requests](https://img.shields.io/github/issues-pr/kylelobo/The-Documentation-Compendium.svg)](https://github.com/lordskyzw/rogue/pulls)
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](/LICENSE)
 
