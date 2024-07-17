@@ -108,12 +108,12 @@ End with an example of getting some data out of the system or using it for a lit
 
 To see an example project on how to deploy your bot, please see my own configuration:
 
-- **Railway**: https://github.com/lordskyzw/Reddit-Bot#deploying_the_bot
+- **Railway**:
 
 ## ⛏️ Built Using <a name = "built_using"></a>
 
 - [pygwan](https://github.com/lordskyzw/pygwan) - Python whatsapp API Wrapper
-- [Heroku](https://www.heroku.com/) - SaaS hosting platform
+- [Railway](https://www.railway.app/) - SaaS hosting platform
 
 ## ✍️ Authors <a name = "authors"></a>
 
