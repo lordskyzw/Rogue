@@ -37,7 +37,11 @@
 
 ## 🧐 About <a name = "about"></a>
 
-Write about 1-2 paragraphs describing the purpose of your bot.
+started out as a simple agent which would just make tweets for me, until i realized i could a whooooooole lot more
+but as time goes, i want to move away from OpenAI and towards free and opensource models, because, (laugh at me) i cannot stop thinking about scaling even without funding.
+besides, its given me a worthy challenge, just calling openai api feels like playing the game on easy mode.
+
+
 
 ## 🎥 Demo / Working <a name = "demo"></a>
 
