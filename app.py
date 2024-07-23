@@ -1,10 +1,10 @@
 # Description: This is the main file for the AI SYSTEM. It handles all the incoming messages and sends them to the appropriate AI for processing.
 #import openai
 import os
+import sys
 from utilities.toolbox import *
 from utilities.agents import OAIAgent, GroqAgent
 from utilities.generics import *
-from access.access import whitelist, TARMICA
 from fastapi import FastAPI, Request, Response
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import HTMLResponse
@@ -22,7 +22,39 @@ recipients_db = recipients_database()
 
 
 VERIFY_TOKEN = "30cca545-3838-48b2-80a7-9e43b1ae8ce4"
-
+TARMICA = "263779281345"
+DON = "263781208882"
+beta = [
+        "263784037241",# ~Ck
+        "263713918382",# Simba Kasiyazi
+        "263773807203", #Sibu
+        "263786597053", #Allison
+        "265982659389",
+        "263774694160",
+        "263787902521",
+        "263777213597",
+        "48504298321",
+        "263786913190",
+        "263716065423",
+        "263784908771",
+        "263771229658",
+        "263786936685",
+        "263712699365",
+        "263786990464",
+        "263783525762",
+        "263778923849",
+        "263788667111",
+        "263782314894",
+        "263713965702",
+        "263777859397",
+        "263786072641",
+        "263776555142",
+        "263783525762",
+        "263718178416",
+        "263777150345", #cyprianaaron
+        "263781208882", #the don
+    ]
+whitelist = beta + [TARMICA]
 
 app = FastAPI()
 # CORS configuration
@@ -99,7 +131,7 @@ async def hook(request: Request):
                     if recipient == TARMICA:
                         ### enter the
                         groq_winter = GroqAgent(recipient=TARMICA)
-                        response = groq_winter.create_message_and_get_response(content=message, history=history)
+                        response = groq_winter.create_message_and_get_response(message=message, history=history)
                         logging.info("RAW RESPONSE=================================================%s", response)
                         response_handler(response=response, recipient_id=recipient, message_id=message_id) 
                         
